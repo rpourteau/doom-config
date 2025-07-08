@@ -97,6 +97,11 @@
 	("std_logic_vector" "slv(<msb> downto <lsb>)" "v" "")))
     )
 
+;; Add Gut and icons to the modeline
+(after! doom-modeline
+  (setq
+   doom-modeline-github t
+   doom-modeline-major-mode-icon t))
 
 ;; Whenever you reconfigure a package, make sure to wrap your config in an
 ;; `after!' block, otherwise Doom's defaults may override your settings. E.g.
