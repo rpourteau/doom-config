@@ -3,6 +3,8 @@
 ;; Place your private configuration here! Remember, you do not need to run 'doom
 ;; sync' after modifying this file!
 
+(add-to-list 'load-path (expand-file-name "lisp" doom-user-dir))
+(global-set-key (kbd "C-z") 'undo)   ;; Bind C-Z to undo
 
 ;; Some functionality uses this to identify you, e.g. GPG configuration, email
 ;; clients, file templates and snippets. It is optional.
@@ -42,6 +44,14 @@
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
 (setq org-directory "~/org/")
+
+;; Highlight-symbol
+(use-package! highlight-symbol
+  :load-path "lisp/"
+  :bind (("C-<f3>" . highlight-symbol)
+         ("<f3>"   . highlight-symbol-next)
+         ("S-<f3>" . highlight-symbol-prev)
+         ("M-<f3>" . highlight-symbol-query-replace)))
 
 
 (use-package! systemrdl-mode
