@@ -2,9 +2,9 @@
 
 ;; Place your private configuration here! Remember, you do not need to run 'doom
 ;; sync' after modifying this file!
-
 (add-to-list 'load-path (expand-file-name "lisp" doom-user-dir))
 (global-set-key (kbd "C-z") 'undo)   ;; Bind C-Z to undo
+(setq global-hl-line-modes nil)
 
 ;; Some functionality uses this to identify you, e.g. GPG configuration, email
 ;; clients, file templates and snippets. It is optional.
