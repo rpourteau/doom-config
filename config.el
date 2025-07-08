@@ -8,8 +8,8 @@
 
 ;; Some functionality uses this to identify you, e.g. GPG configuration, email
 ;; clients, file templates and snippets. It is optional.
-;; (setq user-full-name "John Doe"
-;;       user-mail-address "john@doe.com")
+(setq user-full-name "rpourteau"
+      user-mail-address "remy.pourteau@cosylab.com")
 
 ;; Doom exposes five (optional) variables for controlling fonts in Doom:
 ;;
@@ -23,14 +23,7 @@
 ;; See 'C-h v doom-font' for documentation and more examples of what they
 ;; accept. For example:
 ;;
-;;(setq doom-font (font-spec :family "Courier New" :size 12 :weight 'semi-light))
 (setq doom-font (font-spec :family "Courier New" :height 110))
-;;      doom-variable-pitch-font (font-spec :family "Fira Sans" :size 13))
-
-;; If you or Emacs can't find your font, use 'M-x describe-font' to look them
-;; up, `M-x eval-region' to execute elisp code, and 'M-x doom/reload-font' to
-;; refresh your font settings. If Emacs still can't find your font, it likely
-;; wasn't installed correctly. Font issues are rarely Doom issues!
 
 ;; There are two ways to load a theme. Both assume the theme is installed and
 ;; available. You can either set `doom-theme' or manually load a theme with the
@@ -97,11 +90,12 @@
 	("std_logic_vector" "slv(<msb> downto <lsb>)" "v" "")))
     )
 
-;; Add Gut and icons to the modeline
+;; Add Git and icons to the modeline
 (after! doom-modeline
   (setq
    doom-modeline-github t
    doom-modeline-major-mode-icon t))
+
 
 ;; Whenever you reconfigure a package, make sure to wrap your config in an
 ;; `after!' block, otherwise Doom's defaults may override your settings. E.g.
