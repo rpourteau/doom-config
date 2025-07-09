@@ -96,6 +96,27 @@
    doom-modeline-github t
    doom-modeline-major-mode-icon t))
 
+(use-package! vhdl-ext
+  :init
+  ;; Only enable LSP and navigation for now
+  (setq vhdl-ext-feature-list
+        '(font-lock       ;; Keep syntax highlight from vhdl-mode
+          lsp             ;; Enable LSP
+          navigation      ;; Allow go-to-definition etc.
+          imenu))         ;; Index for outline/sidebar
+  :hook (vhdl-mode . vhdl-ext-mode)
+  :config
+  (vhdl-ext-mode-setup)
+  (vhdl-ext-lsp-set-server 've-rust-hdl)) ;; Use vhdl_ls (Rust HDL)
+
+(after! lsp-mode
+  (lsp-register-client
+   (make-lsp-client
+    :new-connection (lsp-stdio-connection "vhdl_ls")
+    :major-modes '(vhdl-mode)
+    :server-id 've-rust-hdl)))
+
+(add-hook! vhdl-mode #'lsp!)
 
 ;; Whenever you reconfigure a package, make sure to wrap your config in an
 ;; `after!' block, otherwise Doom's defaults may override your settings. E.g.
