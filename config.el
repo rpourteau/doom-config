@@ -101,6 +101,7 @@
   ;; Only enable LSP and navigation for now
   (setq vhdl-ext-feature-list
         '(font-lock       ;; Keep syntax highlight from vhdl-mode
+          xref            ;; jump to definition
           lsp             ;; Enable LSP
           navigation      ;; Allow go-to-definition etc.
           imenu))         ;; Index for outline/sidebar
