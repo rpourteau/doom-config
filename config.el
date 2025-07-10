@@ -111,6 +111,8 @@
   (vhdl-ext-lsp-set-server 've-rust-hdl)) ;; Use vhdl_ls (Rust HDL)
 
 (after! lsp-mode
+  (setq lsp-enable-file-watchers t
+        lsp-file-watch-threshold 2000)
   (lsp-register-client
    (make-lsp-client
     :new-connection (lsp-stdio-connection "vhdl_ls")
