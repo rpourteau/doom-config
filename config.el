@@ -7,6 +7,10 @@
 (global-set-key (kbd "C-c d") #'lsp-find-definition) ;; Easier than to use the mouse to go to definition
 (setq global-hl-line-modes nil)
 
+(put 'upcase-region 'disabled nil)
+(put 'downcase-region 'disabled nil)
+
+
 ;; Some functionality uses this to identify you, e.g. GPG configuration, email
 ;; clients, file templates and snippets. It is optional.
 (setq user-full-name "rpourteau"
