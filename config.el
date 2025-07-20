@@ -126,6 +126,11 @@
 
 ;;(add-hook! vhdl-mode #'lsp!)
 
+;; Easy eascape insert mode
+(after! evil-escape
+  (setq evil-escape-delay 0.5)
+  (setq evil-escape-key-sequence "jk"))
+
 ;; Whenever you reconfigure a package, make sure to wrap your config in an
 ;; `after!' block, otherwise Doom's defaults may override your settings. E.g.
 ;;
