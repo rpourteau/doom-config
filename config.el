@@ -142,6 +142,28 @@
   (setq evil-escape-delay 0.5)
   (setq evil-escape-key-sequence "jk"))
 
+(defvar my/term-buffer-name "*my-term*")
+
+(defun my/toggle-term ()
+  "Toggle a horizontal `term` split."
+  (interactive)
+  (let ((buf (get-buffer my/term-buffer-name)))
+    (if (and buf (get-buffer-window buf))
+        ;; If term is visible, delete its window
+        (delete-window (get-buffer-window buf))
+      ;; Otherwise, show it in a horizontal split
+      (let ((term-window (split-window-vertically -15)))
+        (select-window term-window)
+        (if buf
+            (switch-to-buffer buf)
+          (let ((term-shell (getenv "SHELL")))
+            (term term-shell)
+            (rename-buffer my/term-buffer-name)))))))
+
+(map! :leader
+      :prefix "t" ;; this is for SPC t
+      :desc "Toggle terminal" "t" #'my/toggle-term)
+
 ;; Whenever you reconfigure a package, make sure to wrap your config in an
 ;; `after!' block, otherwise Doom's defaults may override your settings. E.g.
 ;;
