@@ -124,8 +124,6 @@
     :major-modes '(vhdl-mode)
     :server-id 've-rust-hdl)))
 
-;;(add-hook! vhdl-mode #'lsp!)
-
 ;; Easy eascape insert mode
 (after! evil-escape
   (setq evil-escape-delay 0.5)
