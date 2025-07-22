@@ -50,10 +50,23 @@
          ("<f3>"   . highlight-symbol-next)
          ("S-<f3>" . highlight-symbol-prev)
          ("M-<f3>" . highlight-symbol-query-replace)))
-
-
 (use-package! systemrdl-mode
-  :mode ("\\.rdl\\'" . systemrdl-mode))
+  :mode ("\\.rdl\\'" . systemrdl-mode)
+  :custom
+  (systemrdl-basic-offset 2)
+  :config
+  (defun my/systemrdl-indent-settings ()
+    ;; Enforce 2-space indentation
+    (setq-local tab-width 2)
+    (setq-local standard-indent 2)
+    (setq-local indent-tabs-mode nil)
+    (setq-local evil-shift-width 2)
+
+    ;; Clear any indent-region-function so it falls back to indent-line-function
+    (setq-local indent-region-function nil)
+    )
+
+  (add-hook 'systemrdl-mode-hook #'my/systemrdl-indent-settings))
 
 (use-package! vhdl-mode
     :mode ("\\.vhd\\'" "\\.vhdl\\'")
