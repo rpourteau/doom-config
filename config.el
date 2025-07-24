@@ -166,6 +166,8 @@
       :prefix "t" ;; this is for SPC t
       :desc "Toggle terminal" "t" #'my/toggle-term)
 
+(add-hook 'term-mode-hook #'ansi-color-for-comint-mode-on)
+
 ;; Whenever you reconfigure a package, make sure to wrap your config in an
 ;; `after!' block, otherwise Doom's defaults may override your settings. E.g.
 ;;
