@@ -10,6 +10,8 @@
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
 
+;; Enable C-x C-s to work in insert mode
+(define-key evil-insert-state-map (kbd "C-x C-s") #'save-buffer)
 
 ;; Some functionality uses this to identify you, e.g. GPG configuration, email
 ;; clients, file templates and snippets. It is optional.
