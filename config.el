@@ -29,7 +29,7 @@
 ;;
 ;; See 'C-h v doom-font' for documentation and more examples of what they
 ;; accept.
-(setq doom-font (font-spec :family "JetBrains Mono NL" :height 110))
+(setq doom-font (font-spec :family "JetBrains Mono NL" :size 14))
 
 ;; There are two ways to load a theme. Both assume the theme is installed and
 ;; available. You can either set `doom-theme' or manually load a theme with the
