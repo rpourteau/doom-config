@@ -13,6 +13,9 @@
 ;; Enable C-x C-s to work in insert mode
 (define-key evil-insert-state-map (kbd "C-x C-s") #'save-buffer)
 
+;; Restore C-y to yank from kill-ring while in insert mode
+(map! :i "C-y" #'yank)
+
 ;; Some functionality uses this to identify you, e.g. GPG configuration, email
 ;; clients, file templates and snippets. It is optional.
 (setq user-full-name "rpourteau"
