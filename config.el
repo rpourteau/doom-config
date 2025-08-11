@@ -132,6 +132,8 @@
   (vhdl-ext-mode-setup)
   (vhdl-ext-lsp-set-server 've-rust-hdl)) ;; Use vhdl_ls (Rust HDL)
 
+(add-hook! vhdl-mode #'lsp!)
+
 (after! lsp-mode
   (setq lsp-enable-file-watchers t
         lsp-file-watch-threshold 2000)
