@@ -7,6 +7,10 @@
 (global-set-key (kbd "C-c d") #'lsp-find-definition) ;; Easier than to use the mouse to go to definition
 (setq global-hl-line-modes t)
 
+(map! :leader
+      :prefix "l" ;; this is for SPC l
+      :desc "List flycheck errors" "l" #'flycheck-list-errors)
+
 ;; Show both absolute and relative line numbers
 (setq display-line-numbers-type 'relative)
 
