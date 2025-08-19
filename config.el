@@ -5,7 +5,7 @@
 (add-to-list 'load-path (expand-file-name "lisp" doom-user-dir))
 (global-set-key (kbd "C-z") 'undo)   ;; Bind C-Z to undo
 (global-set-key (kbd "C-c d") #'lsp-find-definition) ;; Easier than to use the mouse to go to definition
-(setq global-hl-line-modes nil)
+(setq global-hl-line-modes t)
 
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
