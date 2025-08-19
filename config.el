@@ -11,6 +11,10 @@
       :prefix "l" ;; this is for SPC l
       :desc "List flycheck errors" "l" #'flycheck-list-errors)
 
+(map! :leader
+      :prefix "t" ;; this is for SPC t
+      :desc "Toggle menu bar mode" "m" #'menu-bar-mode)
+
 ;; Show both absolute and relative line numbers
 (setq display-line-numbers-type 'relative)
 
