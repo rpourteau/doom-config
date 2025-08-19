@@ -7,6 +7,13 @@
 (global-set-key (kbd "C-c d") #'lsp-find-definition) ;; Easier than to use the mouse to go to definition
 (setq global-hl-line-modes t)
 
+;; Show both absolute and relative line numbers
+(setq display-line-numbers-type 'relative)
+
+;; Also show absolute numbers on the current line
+(setq display-line-numbers-current-absolute t)
+
+
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
 
@@ -25,7 +32,6 @@
 ;; JetBrains Mono without ligatures
 (setq doom-font (font-spec :family "JetBrains Mono NL" :size 18))
 (setq doom-theme 'doom-one)
-(setq display-line-numbers-type t)
 
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
