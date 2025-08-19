@@ -7,3 +7,6 @@
 
 (package! vhdl-ext
   :recipe (:host github :repo "gmlarumbe/vhdl-ext"))
+
+(package! symbol-overlay
+  :recipe (:host github :repo "wolray/symbol-overlay"))
