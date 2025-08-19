@@ -167,3 +167,35 @@
 
 (add-hook 'term-mode-hook #'ansi-color-for-comint-mode-on)
 
+
+;; Always center after half-page scrolls and searches (Evil)
+(after! evil
+  ;; --- Half-page scrolls: C-d / C-u ---
+  (defun my/evil-scroll-down-center ()
+    "Half-page down, then center."
+    (interactive)
+    (evil-scroll-down nil)
+    (recenter))
+
+  (defun my/evil-scroll-up-center ()
+    "Half-page up, then center."
+    (interactive)
+    (evil-scroll-up nil)
+    (recenter))
+
+  ;; Bind in normal & visual modes (like Vim)
+  (map! :n "C-d" #'my/evil-scroll-down-center
+        :n "C-u" #'my/evil-scroll-up-center
+        :v "C-d" #'my/evil-scroll-down-center
+        :v "C-u" #'my/evil-scroll-up-center)
+
+  ;; --- Searches: *, #, n, N ---
+  ;; After any of these search commands, recenter the line.
+  (defun my/recenter-after-search (&rest _)
+    (recenter))
+
+  (dolist (cmd '(evil-search-word-forward      ; *
+                 evil-search-word-backward     ; #
+                 evil-ex-search-next           ; n
+                 evil-ex-search-previous))     ; N
+    (advice-add cmd :after #'my/recenter-after-search)))
