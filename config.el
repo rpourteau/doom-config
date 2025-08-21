@@ -9,6 +9,10 @@
 
 (map! :leader
       :prefix "l" ;; this is for SPC l
+      :desc "Remove symbol overlay" "s" #'symbol-overlay-remove-all)
+
+(map! :leader
+      :prefix "l" ;; this is for SPC l
       :desc "List flycheck errors" "l" #'flycheck-list-errors)
 
 (map! :leader
