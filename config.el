@@ -13,6 +13,10 @@
 
 (map! :leader
       :prefix "l" ;; this is for SPC l
+      :desc "Launch Claude Code IDE" "c" #'claude-code-ide)
+
+(map! :leader
+      :prefix "l" ;; this is for SPC l
       :desc "List flycheck errors" "l" #'flycheck-list-errors)
 
 (map! :leader
@@ -207,3 +211,13 @@
                  evil-ex-search-next           ; n
                  evil-ex-search-previous))     ; N
     (advice-add cmd :after #'my/recenter-after-search)))
+
+;; Configure eat for Claude code ide
+(after! claude-code-ide
+  (setq claude-code-ide-terminal-backend 'eat))
+
+(after! eat
+  (add-hook 'eat-mode-hook
+            (lambda ()
+              (when (string-match-p "claude-code" (buffer-name))
+                (evil-emacs-state)))))
