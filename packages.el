@@ -27,3 +27,7 @@
                ("terminfo/65" "terminfo/65/*")
                ("integration" "integration/*")
                (:exclude ".dir-locals.el" "*-tests.el"))))
+
+;; Mermaid mode
+(package! mermaid-mode
+  :recipe (:host github :repo "abrochard/mermaid-mode"))
