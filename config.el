@@ -53,7 +53,22 @@
          ("<f3>"   . symbol-overlay-jump-next)
          ("S-<f3>" . symbol-overlay-jump-prev)
          ("M-<f3>" . symbol-overlay-query-replace))
-  :hook (prog-mode . symbol-overlay-mode))
+  :hook (prog-mode . symbol-overlay-mode)
+  :config
+  ;; Unbind keybinds to prevent conflict with evil
+  (define-key symbol-overlay-map (kbd "h") nil)
+  (define-key symbol-overlay-map (kbd "d") nil)
+  (define-key symbol-overlay-map (kbd "e") nil)
+  (define-key symbol-overlay-map (kbd "i") nil)
+  (define-key symbol-overlay-map (kbd "n") nil)
+  (define-key symbol-overlay-map (kbd "p") nil)
+  (define-key symbol-overlay-map (kbd "q") nil)
+  (define-key symbol-overlay-map (kbd "r") nil)
+  (define-key symbol-overlay-map (kbd "s") nil)
+  (define-key symbol-overlay-map (kbd "t") nil)
+  (define-key symbol-overlay-map (kbd "w") nil)
+  (define-key symbol-overlay-map (kbd "<") nil)
+  (define-key symbol-overlay-map (kbd ">") nil))
 
 (use-package! systemrdl-mode
   :mode ("\\.rdl\\'" . systemrdl-mode)
