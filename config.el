@@ -29,6 +29,9 @@
 ;; Enable C-x C-s to work in insert mode
 (define-key evil-insert-state-map (kbd "C-x C-s") #'save-buffer)
 
+;; Make :q kill the buffer instead of the frame
+(evil-ex-define-cmd "q" 'kill-current-buffer)
+
 ;; Restore C-y to yank from kill-ring while in insert mode
 (map! :i "C-y" #'yank)
 
