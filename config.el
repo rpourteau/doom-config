@@ -35,6 +35,9 @@
 ;; Restore C-y to yank from kill-ring while in insert mode
 (map! :i "C-y" #'yank)
 
+;; Make C-e work like vanilla Emacs in normal mode (end of line)
+(map! :n "C-e" #'evil-end-of-line)
+
 ;; Some functionality uses this to identify you, e.g. GPG configuration, email
 ;; clients, file templates and snippets. It is optional.
 (setq user-full-name "rpourteau"
