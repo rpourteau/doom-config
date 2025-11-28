@@ -23,6 +23,10 @@
       :prefix "t" ;; this is for SPC t
       :desc "Toggle menu bar mode" "m" #'menu-bar-mode)
 
+(map! :leader
+      :prefix "l" ;; this is for SPC l
+      :desc "Start python interpreter" "p" #'run-python)
+
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
 
