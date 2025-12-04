@@ -232,6 +232,16 @@
                  evil-ex-search-previous))     ; N
     (advice-add cmd :after #'my/recenter-after-search)))
 
+;; Prevent new frames from switching/creating workspaces
+(after! persp-mode
+  ;; Set to -1 to prevent automatic workspace switching on new frames
+  (setq persp-emacsclient-init-frame-behaviour-override -1))
+
+;; Make SPC o f use make-frame-command (like C-x 5 2) to avoid creating new workspaces
+(map! :leader
+      :prefix "o"
+      :desc "New frame" "f" #'make-frame-command)
+
 ;; Configure eat for Claude code ide
 (after! claude-code-ide
   (setq claude-code-ide-terminal-backend 'eat))
