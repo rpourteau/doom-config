@@ -13,7 +13,7 @@
 
 (map! :leader
       :prefix "l" ;; this is for SPC l
-      :desc "Launch Claude Code IDE" "c" #'claude-code-ide)
+      :desc "Launch Claude Code IDE" "i" #'claude-code-ide)
 
 (map! :leader
       :prefix "l" ;; this is for SPC l
@@ -26,6 +26,10 @@
 (map! :leader
       :prefix "l" ;; this is for SPC l
       :desc "Start python interpreter" "p" #'run-python)
+
+(map! :leader
+      :prefix "l" ;; this is for SPC l
+      :desc "Comment-line" "c" #'comment-line)
 
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
