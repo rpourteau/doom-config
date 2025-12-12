@@ -7,6 +7,7 @@
 (global-set-key (kbd "C-c d") #'lsp-find-definition) ;; Easier than to use the mouse to go to definition
 (setq global-hl-line-modes t)
 
+;; Custom shortcuts
 (map! :leader
       :prefix "l" ;; this is for SPC l
       :desc "Remove symbol overlay" "s" #'symbol-overlay-remove-all)
@@ -30,6 +31,10 @@
 (map! :leader
       :prefix "l" ;; this is for SPC l
       :desc "Comment-line" "c" #'comment-line)
+
+(map! :leader
+      :prefix "l" ;; this is for SPC l
+      :desc "Call rgrep" "g" #'rgrep)
 
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
