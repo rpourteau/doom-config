@@ -58,8 +58,16 @@
   (interactive)
   (insert (evil-get-register ?0)))
 
+(defun my/visual-paste-from-register-0 ()
+  "In visual mode, paste from register 0 replacing selection."
+  (interactive)
+  (evil-paste-from-register ?0))
+
 (map! :n "C-y" #'my/paste-from-register-0
-      :i "C-y" #'my/insert-from-register-0)
+      :i "C-y" #'my/insert-from-register-0
+      :v "C-y" #'my/visual-paste-from-register-0
+      :v "p" #'my/visual-paste-from-register-0
+      :v "P" #'my/visual-paste-from-register-0)
 
 ;; Make C-e work like vanilla Emacs in normal mode (end of line)
 (map! :n "C-e" #'evil-end-of-line)
