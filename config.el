@@ -45,8 +45,21 @@
 ;; Make :q kill the buffer instead of the frame
 (evil-ex-define-cmd "q" 'kill-current-buffer)
 
-;; Restore C-y to yank from kill-ring while in insert mode
-(map! :i "C-y" #'yank)
+;; Make C-y paste from register 0 (most recent yank, unaffected by deletes)
+;; Normal mode: acts like "0p
+;; Insert mode: acts like C-r 0
+(defun my/paste-from-register-0 ()
+  "Paste from register 0 (most recent yank) after cursor."
+  (interactive)
+  (evil-paste-after 1 ?0))
+
+(defun my/insert-from-register-0 ()
+  "Insert contents of register 0 at point."
+  (interactive)
+  (insert (evil-get-register ?0)))
+
+(map! :n "C-y" #'my/paste-from-register-0
+      :i "C-y" #'my/insert-from-register-0)
 
 ;; Make C-e work like vanilla Emacs in normal mode (end of line)
 (map! :n "C-e" #'evil-end-of-line)
