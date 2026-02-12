@@ -20,12 +20,13 @@
 (map! :leader
       :prefix "t"
       :desc "Toggle menu bar mode" "m" #'menu-bar-mode
-      :desc "Toggle terminal" "t" #'my/toggle-term)
+      :desc "Toggle treemacs" "t" #'+treemacs/toggle)
 
 ;; SPC o - open
 (map! :leader
       :prefix "o"
-      :desc "New frame" "f" #'make-frame-command)
+      :desc "New frame" "f" #'make-frame-command
+      :desc "Toggle terminal" "t" #'my/toggle-term)
 
 ;;; Evil mode customizations
 
