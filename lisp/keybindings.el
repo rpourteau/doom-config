@@ -36,28 +36,6 @@
 ;; Make :q kill the buffer instead of the frame
 (evil-ex-define-cmd "q" 'kill-current-buffer)
 
-;; C-y paste from register 0 (most recent yank, unaffected by deletes)
-(defun my/paste-from-register-0 ()
-  "Paste from register 0 (most recent yank) after cursor."
-  (interactive)
-  (evil-paste-after 1 ?0))
-
-(defun my/insert-from-register-0 ()
-  "Insert contents of register 0 at point."
-  (interactive)
-  (insert (evil-get-register ?0)))
-
-(defun my/visual-paste-from-register-0 ()
-  "In visual mode, paste from register 0 replacing selection."
-  (interactive)
-  (evil-paste-from-register ?0))
-
-(map! :n "C-y" #'my/paste-from-register-0
-      :i "C-y" #'my/insert-from-register-0
-      :v "C-y" #'my/visual-paste-from-register-0
-      :v "p" #'my/visual-paste-from-register-0
-      :v "P" #'my/visual-paste-from-register-0)
-
 ;; Make C-e work like vanilla Emacs (end of line)
 (map! :n "C-e" #'evil-end-of-line
       :v "C-e" #'evil-end-of-line)
