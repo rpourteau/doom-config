@@ -36,6 +36,9 @@
 ;; Make :q kill the buffer instead of the frame
 (evil-ex-define-cmd "q" 'kill-current-buffer)
 
+;; Restore C-y to yank from kill-ring in insert mode
+(map! :i "C-y" #'yank)
+
 ;; Make C-e work like vanilla Emacs (end of line)
 (map! :n "C-e" #'evil-end-of-line
       :v "C-e" #'evil-end-of-line)
