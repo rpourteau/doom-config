@@ -20,6 +20,7 @@
 (map! :leader
       :prefix "t"
       :desc "Toggle menu bar mode" "m" #'menu-bar-mode
+      :desc "Toggle pop-up" "p" #'+popup/toggle
       :desc "Toggle treemacs" "t" #'+treemacs/toggle)
 
 ;; SPC o - open
