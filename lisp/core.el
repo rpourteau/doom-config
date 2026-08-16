@@ -12,8 +12,13 @@
 ;; Highlight current line globally
 (setq global-hl-line-modes t)
 
-;; Org directory
-(setq org-directory "~/org/")
+;; Org roam directory
+;; (setq org-roam-directory (file-truename "~/org-roam"))
+(setq org-roam-directory "~/org-roam")
+(setq org-agenda-files
+      (list org-roam-directory))
+
+(org-roam-db-autosync-mode)
 
 ;; Enable case commands
 (put 'upcase-region 'disabled nil)
