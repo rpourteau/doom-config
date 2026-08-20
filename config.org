@@ -1,0 +1,448 @@
+#+title: Doom Emacs configuration
+#+author: rpourteau
+#+property: header-args:emacs-lisp :tangle config.el :results silent
+#+startup: overview
+
+This is my literate Doom Emacs configuration. The =:config literate= module
+tangles every =emacs-lisp= block below into =$DOOMDIR/config.el= (and a few into
+=$DOOMDIR/packages.el=, see [[*Packages][Packages]]) whenever =doom sync= runs, and
+asynchronously whenever this file is saved. Nothing here is loaded at startup —
+Emacs only ever reads the tangled output.
+
+Two consequences worth remembering:
+
+- =config.el= and =packages.el= are *generated*. Never edit them by hand; the
+  next save of this file will silently discard the change.
+- =init.el= stays hand-written. Doom reads module =init.el= files long before
+  =config.org= is tangled, so it cannot be made literate with this module.
+
+After changing anything under [[*Packages][Packages]], run =doom sync= as usual. Changes
+anywhere else only need =SPC h r r= (~doom/reload~).
+
+* Header
+
+Must be the very first block so the file-local variables land on line 1 of the
+tangled file.
+
+#+begin_src emacs-lisp
+;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
+;;; Generated from config.org by the :config literate module. Do not edit.
+#+end_src
+
+* Core
+
+Identity, used by Doom for templates and by anything that signs commits or
+messages.
+
+#+begin_src emacs-lisp
+;; User identity
+(setq user-full-name "rpourteau"
+      user-mail-address "remy.pourteau@cosylab.com")
+#+end_src
+
+Appearance. ~display-line-numbers-type~ is ~t~ (absolute numbers) rather than
+Doom's ~'relative~ default.
+
+#+begin_src emacs-lisp
+;; Theme and font
+(setq doom-font (font-spec :family "JetBrains Mono NL" :size 18))
+(setq doom-theme 'doom-one)
+(setq display-line-numbers-type 't)
+
+;; Highlight current line globally
+(setq global-hl-line-modes t)
+#+end_src
+
+Org and org-roam live under =~/org=; the agenda scans the roam directory so
+TODOs captured in notes show up there.
+
+#+begin_src emacs-lisp
+;; Org roam directory
+;; (setq org-roam-directory (file-truename "~/org-roam"))
+(setq org-directory "~/org")
+(setq org-roam-directory "~/org/roam")
+(setq org-agenda-files
+      (list org-roam-directory))
+
+(org-roam-db-autosync-mode)
+#+end_src
+
+#+begin_src emacs-lisp
+;; Enable case commands
+(put 'upcase-region 'disabled nil)
+(put 'downcase-region 'disabled nil)
+#+end_src
+
+* Keybindings
+** Global
+
+#+begin_src emacs-lisp
+(global-set-key (kbd "C-z") 'undo)
+(global-set-key (kbd "C-c d") #'lsp-find-definition)
+#+end_src
+
+** Leader (=SPC=)
+
+=SPC l= is my own prefix for one-off commands that don't fit elsewhere.
+
+#+begin_src emacs-lisp
+;; SPC l - custom commands
+(map! :leader
+      :prefix "l"
+      :desc "Remove symbol overlay" "s" #'symbol-overlay-remove-all
+      :desc "Launch Claude Code IDE" "i" #'claude-code-ide
+      :desc "List flycheck errors" "l" #'flycheck-list-errors
+      :desc "Start python interpreter" "p" #'run-python
+      :desc "Comment-line" "c" #'comment-line
+      :desc "Call rgrep" "g" #'rgrep)
+#+end_src
+
+#+begin_src emacs-lisp
+;; SPC t - toggles
+(map! :leader
+      :prefix "t"
+      :desc "Toggle menu bar mode" "m" #'menu-bar-mode
+      :desc "Toggle pop-up" "p" #'+popup/toggle
+      :desc "Toggle treemacs" "t" #'+treemacs/toggle)
+#+end_src
+
+~my/toggle-term~ is defined under [[*Terminal toggle][Terminal toggle]].
+
+#+begin_src emacs-lisp
+;; SPC o - open
+(map! :leader
+      :prefix "o"
+      :desc "New frame" "f" #'make-frame-command
+      :desc "Toggle terminal" "t" #'my/toggle-term)
+#+end_src
+
+** Evil
+
+A handful of vanilla-Emacs reflexes I refuse to give up inside evil.
+
+#+begin_src emacs-lisp
+;; Enable C-x C-s in insert mode
+(define-key evil-insert-state-map (kbd "C-x C-s") #'save-buffer)
+
+;; Make :q kill the buffer instead of the frame
+(evil-ex-define-cmd "q" 'kill-current-buffer)
+
+;; Restore C-y to yank from kill-ring in insert mode
+(map! :i "C-y" #'yank)
+
+;; Make C-e work like vanilla Emacs (end of line)
+(map! :n "C-e" #'evil-end-of-line
+      :v "C-e" #'evil-end-of-line)
+#+end_src
+
+#+begin_src emacs-lisp
+;; Easy escape from insert mode
+(after! evil-escape
+  (setq evil-escape-delay 0.5)
+  (setq evil-escape-key-sequence "jk"))
+#+end_src
+
+Keeping point vertically centred after a jump saves a lot of re-orientation.
+Applies to half-page scrolls and to every flavour of search.
+
+#+begin_src emacs-lisp
+;; Center after half-page scrolls and searches
+(after! evil
+  ;; Half-page scrolls: C-d / C-u
+  (defun my/evil-scroll-down-center ()
+    "Half-page down, then center."
+    (interactive)
+    (evil-scroll-down nil)
+    (recenter))
+
+  (defun my/evil-scroll-up-center ()
+    "Half-page up, then center."
+    (interactive)
+    (evil-scroll-up nil)
+    (recenter))
+
+  (map! :n "C-d" #'my/evil-scroll-down-center
+        :n "C-u" #'my/evil-scroll-up-center
+        :v "C-d" #'my/evil-scroll-down-center
+        :v "C-u" #'my/evil-scroll-up-center)
+
+  ;; Searches: *, #, n, N - recenter after search
+  (defun my/recenter-after-search (&rest _)
+    (recenter))
+
+  (dolist (cmd '(evil-search-word-forward
+                 evil-search-word-backward
+                 evil-ex-search-next
+                 evil-ex-search-previous))
+    (advice-add cmd :after #'my/recenter-after-search)))
+#+end_src
+
+* Languages
+** SystemRDL
+
+=systemrdl-mode= doesn't provide a working ~indent-region-function~, so clearing
+it forces Emacs to fall back to line-by-line indentation, which does behave.
+
+#+begin_src emacs-lisp
+(use-package! systemrdl-mode
+  :mode ("\\.rdl\\'" . systemrdl-mode)
+  :custom
+  (systemrdl-basic-offset 2)
+  :config
+  (defun my/systemrdl-indent-settings ()
+    ;; Enforce 2-space indentation
+    (setq-local tab-width 2)
+    (setq-local standard-indent 2)
+    (setq-local indent-tabs-mode nil)
+    (setq-local evil-shift-width 2)
+
+    ;; Clear any indent-region-function so it falls back to indent-line-function
+    (setq-local indent-region-function nil))
+
+  (add-hook 'systemrdl-mode-hook #'my/systemrdl-indent-settings))
+#+end_src
+
+** VHDL
+
+House style plus the Cosylab file/process templates. ~vhdl-model-alist~ entries
+are ~(NAME TEMPLATE KEY ...)~; the key is what you type after ~C-c C-m~, and
+=\12= is a literal newline inside the template string.
+
+#+begin_src emacs-lisp
+(use-package! vhdl-mode
+    :mode ("\\.vhd\\'" "\\.vhdl\\'")
+    :custom
+    ;; Formatting
+    (vhdl-basic-offset 3)
+    (vhdl-align-groups t)
+    (vhdl-inline-comment-column 40)
+    (vhdl-end-comment-column 200)
+    ;; Behavior
+    (vhdl-clock-edge-condition 'function)
+    (vhdl-electric-mode nil)
+    (vhdl-reset-kind 'sync)
+    (vhdl-self-insert-comments nil)
+    (vhdl-stutter-mode t)
+    ;; Custom templates
+    (vhdl-model-alist
+      '(("process general"
+	 "<label> : process(<clock>)\12begin\12   if rising_edge(<clock>) then\12      <cursor>\12\12      if <reset> = '1' then\12         Reset;\12      end if;\12   end if;\12end process <label>;"
+	 "p" "")
+	("new document"
+	 "---------------------------------------------------------------------------------------------------\12-- @brief <moduleName>\12-- @details\12--\12--\12-- @author Remy Pourteau, Cosylab (remy.pourteau@cosylab.com)\12-- @file <moduleName>.vhd\12--\12-- Copyright (c) 2026 Cosylab d.d.\12-- This software is distributed under the terms found\12-- in file LICENSE.txt that is included with this distribution.\12---------------------------------------------------------------------------------------------------\12library ieee;\12use ieee.std_logic_1164.all;\12use ieee.numeric_std.all;\12use ieee.math_real.all;\12\12-- CslLib packages\12use work.CslStdRtlPkg.all;\12---------------------------------------------------------------------------------------------------\12entity <moduleName> is\12   generic(\12      -- Add generic here\12   );\12   port(\12      -- Clock and Reset\12      clk_i      : in  sl;\12      rst_i      : in  sl\12      );\12end <moduleName>;\12---------------------------------------------------------------------------------------------------\12architecture rtl of <moduleName> is\12\12   -- Record containing all register elements\12   type RegType is record\12      CslTwoProcessTemplateSig  : sl;\12   end record RegType;\12\12   -- Initial and reset values for all register elements\12   constant REG_INIT_C: RegType :=(\12      CslTwoProcessTemplateSig    => '0');\12\12   -- Output of registers\12   signal r: RegType;\12\12   -- Combinational input to registers\12   signal rin: RegType;\12\12---------------------------------------------------------------------------------------------------\12begin\12   <cursor>\12\12\12end rtl;\12\12"
+	 "n" "")
+	("testBench"
+	 "---------------------------------------------------------------------------------------------------\12-- @brief Test bench for simulating <UUT_Name> module behavior.\12--\12-- @author Remy Pourteau, Cosylab (remy.pourteau@cosylab.com)\12-- @file <UUT_Name>Tb.vhd\12--\12-- Copyright (c) 2026 Cosylab d.d.\12-- This software is distributed under the terms found\12-- in file LICENSE.txt that is included with this distribution.\12---------------------------------------------------------------------------------------------------\12library ieee;\12use ieee.std_logic_1164.all;\12use ieee.numeric_std.all;\12use ieee.math_real.all;\12use std.env.all;\12use work.CslStdRtlPkg.all;\12use work.CslTbAxiPkg.all;\12use work.CslTbBasePkg.all;\12use work.CslPrintfPkg.all;\12---------------------------------------------------------------------------------------------------\12\12entity <UUT_Name>Tb is\12end entity <UUT_Name>Tb;\12\12---------------------------------------------------------------------------------------------------\12\12architecture behavior of <UUT_Name>Tb is\12\12   -------------------------------------------------------------------------------------------------\12   -- Constant declarations\12   constant CLK_PERIOD_C     : time      := <clk_period_ns> ns;\12\12   -------------------------------------------------------------------------------------------------\12   -- UUT signals\12   signal clk_i       : sl                      := '0';\12   signal rst_i       : sl                      := '1';\12\12begin\12\12   -------------------------------------------------------------------------------------------------\12   -- Clocks\12   tbClock(clk_i, CLK_PERIOD_C);\12\12   -------------------------------------------------------------------------------------------------\12   -- UUT Instance\12   <cursor>\12\12   -------------------------------------------------------------------------------------------------\12   -- Testbench Stimulus\12   p_Sim : process\12   begin\12\12      printf(\"-----------------------------------------------------------------------------------\");\12      printf(\"Simulation start @ \\@\");\12      printf(\"Init \\@\");\12\12      tbReset(clk_i, rst_i, '1', 10);\12      tbClkPeriod(clk_i, 1);\12      printf(\"Reset done @ \\@\");\12\12      printf(\"-----------------------------------------------------------------------------------\");\12      printf(\"Checks that pass. @ \\@\");\12\12\12\12      tbClkPeriod(clk_i, 100);\12\12      tbReportErrorCnt;\12      printf(\"-----------------------------------------------------------------------------------\");\12      printf(\"Simulation Finished @ \\@\");\12      printf(\"-----------------------------------------------------------------------------------\");\12      finish;\12   end process p_Sim;\12end architecture behavior;"
+	 "t" "")
+	("SeqProc"
+      "-----------------------------------------------------------------------------\12-- Sequential process\12p_Seq : process(<clock>)\12begin\12   if rising_edge(<clock>) then\12      r <= rin;\12   end if;\12end process p_Seq;"
+      "s" "")
+	("CombProc"
+	 "   -----------------------------------------------------------------------------\12   -- Combinational process\12   p_Comb : process(all)\12      variable v : RegType;\12   begin\12\12      -- Initialize v with current value of all registers\12      v := r;\12\12      <cursor>\12      -----------------------------------------------------------------------------\12      -- Synchronous reset\12      if (<reset> = '1') then\12         v := REG_INIT_C;\12      end if;\12\12      -----------------------------------------------------------------------------\12      -- Drive registers inputs\12      rin <= v;\12\12      -----------------------------------------------------------------------------\12      -- Drive module outputs\12\12\12   end process p_Comb;"
+	 "c" "")
+	("FsmComb"
+	 "   -----------------------------------------------------------------------------\12   -- Combinational process\12   p_Comb : process (all)\12      variable v : RegType;\12   begin\12      -- Latch the current value\12      v := r;\12\12      -- State Machine\12      case r.state is\12\12         when IDLE_S =>\12            <cursor>\12            v.state := IDLE_S;\12\12\12         when others =>\12            v := REG_INIT_C;\12\12      end case;\12\12      -----------------------------------------------------------------------------\12      -- Synchronous reset\12      if (rst_i = '1') then\12         v := REG_INIT_C;\12      end if;\12\12      -----------------------------------------------------------------------------\12      -- Drive registers inputs\12      rin <= v;\12\12      -----------------------------------------------------------------------------\12      -- Drive module outputs\12      output_o <= r.reg1;\12\12   end process p_Comb;"
+	 "f" "")
+	("package"
+	 "---------------------------------------------------------------------------------------------------\12-- @brief Package with constants for <packageName>.vhd\12-- @details\12--\12--\12-- @author Remy Pourteau, Cosylab (remy.pourteau@cosylab.com)\12-- @file <packageName>.vhd\12--\12-- Copyright (c) 2026 Cosylab d.d.\12-- This software is distributed under the terms found\12-- in file LICENSE.txt that is included with this distribution.\12---------------------------------------------------------------------------------------------------\12\12library ieee;\12use ieee.std_logic_1164.all;\12use ieee.numeric_std.all;\12\12use work.CslStdRtlPkg.all;\12\12package <packageName> is\12   -----------------------------------------------------------------------------\12   -- Functions definition, description in body\12   -----------------------------------------------------------------------------\12   <cursor>\12\12\12   -----------------------------------------------------------------------------\12   -- Constants definition\12   -----------------------------------------------------------------------------\12\12   -----------------------------------------------------------------------------\12   -- Types definition\12   -----------------------------------------------------------------------------\12\12\12   -----------------------------------------------------------------------------\12   -- Types reset value constants\12   -----------------------------------------------------------------------------\12\12end <packageName>;\12\12package body <packageName> is\12end <packageName>;\12"
+	 "k" "")
+	("std_logic_vector" "slv(<msb> downto <lsb>)" "v" "")))
+    )
+#+end_src
+
+*** vhdl-ext
+
+Only the features I actually use are enabled — the full ~vhdl-ext-feature-list~
+pulls in linting, beautifying and templating that would fight the settings
+above.
+
+#+begin_src emacs-lisp
+(use-package! vhdl-ext
+  :init
+  ;; Only enable LSP and navigation for now
+  (setq vhdl-ext-feature-list
+        '(font-lock       ;; Keep syntax highlight from vhdl-mode
+          xref            ;; jump to definition
+          lsp             ;; Enable LSP
+          navigation      ;; Allow go-to-definition etc.
+          imenu))         ;; Index for outline/sidebar
+  :hook (vhdl-mode . vhdl-ext-mode)
+  :config
+  (vhdl-ext-mode-setup)
+  (vhdl-ext-lsp-set-server 've-rust-hdl)) ;; Use vhdl_ls (Rust HDL)
+
+(add-hook! vhdl-mode #'lsp!)
+#+end_src
+
+** LSP
+
+The client registered here is the one ~vhdl-ext-lsp-set-server~ selects above.
+The raised watch threshold keeps LSP from prompting on large HDL trees.
+
+#+begin_src emacs-lisp
+(after! lsp-mode
+  (setq lsp-enable-file-watchers t
+        lsp-file-watch-threshold 2000)
+  (lsp-register-client
+   (make-lsp-client
+    :new-connection (lsp-stdio-connection "vhdl_ls")
+    :major-modes '(vhdl-mode)
+    :server-id 've-rust-hdl)))
+#+end_src
+
+* Tools
+** Symbol overlay
+
+The single-letter bindings in ~symbol-overlay-map~ shadow evil's normal-state
+motions while an overlay is active, so they all get unbound.
+
+#+begin_src emacs-lisp
+(use-package! symbol-overlay
+  :bind (("C-<f3>" . symbol-overlay-put)
+         ("<f3>"   . symbol-overlay-jump-next)
+         ("S-<f3>" . symbol-overlay-jump-prev)
+         ("M-<f3>" . symbol-overlay-query-replace))
+  :hook (prog-mode . symbol-overlay-mode)
+  :config
+  ;; Unbind keybinds to prevent conflict with evil
+  (define-key symbol-overlay-map (kbd "h") nil)
+  (define-key symbol-overlay-map (kbd "d") nil)
+  (define-key symbol-overlay-map (kbd "e") nil)
+  (define-key symbol-overlay-map (kbd "i") nil)
+  (define-key symbol-overlay-map (kbd "n") nil)
+  (define-key symbol-overlay-map (kbd "p") nil)
+  (define-key symbol-overlay-map (kbd "q") nil)
+  (define-key symbol-overlay-map (kbd "r") nil)
+  (define-key symbol-overlay-map (kbd "s") nil)
+  (define-key symbol-overlay-map (kbd "t") nil)
+  (define-key symbol-overlay-map (kbd "w") nil)
+  (define-key symbol-overlay-map (kbd "<") nil)
+  (define-key symbol-overlay-map (kbd ">") nil))
+#+end_src
+
+** Modeline
+
+#+begin_src emacs-lisp
+(after! doom-modeline
+  (setq
+   doom-modeline-github t
+   doom-modeline-major-mode-icon t))
+#+end_src
+
+** Terminal toggle
+
+A single reusable =term= buffer in a bottom split, bound to =SPC o t=.
+
+#+begin_src emacs-lisp
+(defvar my/term-buffer-name "*my-term*")
+
+(defun my/toggle-term ()
+  "Toggle a horizontal `term` split."
+  (interactive)
+  (let ((buf (get-buffer my/term-buffer-name)))
+    (if (and buf (get-buffer-window buf))
+        ;; If term is visible, delete its window
+        (delete-window (get-buffer-window buf))
+      ;; Otherwise, show it in a horizontal split
+      (let ((term-window (split-window-vertically -15)))
+        (select-window term-window)
+        (if buf
+            (switch-to-buffer buf)
+          (let ((term-shell (getenv "SHELL")))
+            (term term-shell)
+            (rename-buffer my/term-buffer-name)))))))
+
+(add-hook 'term-mode-hook #'ansi-color-for-comint-mode-on)
+#+end_src
+
+** Workspaces and frames
+
+Without this, ~emacsclient -c~ creates or switches workspaces instead of just
+opening a frame on the current one.
+
+#+begin_src emacs-lisp
+(after! persp-mode
+  (setq persp-emacsclient-init-frame-behaviour-override -1))
+#+end_src
+
+** Claude Code IDE
+
+Backed by =eat= rather than =vterm= (no C library to compile). The hook drops
+the Claude buffer straight into Emacs state so evil doesn't intercept keys meant
+for the TUI.
+
+#+begin_src emacs-lisp
+(after! claude-code-ide
+  (setq claude-code-ide-terminal-backend 'eat))
+
+(after! eat
+  (add-hook 'eat-mode-hook
+            (lambda ()
+              (when (string-match-p "claude-code" (buffer-name))
+                (evil-emacs-state)))))
+#+end_src
+
+* Packages
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle packages.el
+:END:
+
+Everything under this heading tangles to =$DOOMDIR/packages.el= instead of
+=config.el=, via the ~header-args~ property above. Run =doom sync= after editing
+any of it.
+
+The first block must stay first — =no-byte-compile= has to be on line 1 of the
+tangled file.
+
+#+begin_src emacs-lisp
+;; -*- no-byte-compile: t; -*-
+;;; $DOOMDIR/packages.el
+;;; Generated from config.org by the :config literate module. Do not edit.
+#+end_src
+
+Hardware description and register-description languages.
+
+#+begin_src emacs-lisp
+;; systemrdl mode
+(package! systemrdl-mode
+  :recipe (:host github :repo "paul-donahue/systemrdl-mode"))
+
+;; Required to support LSP on VHDL
+(package! vhdl-ext
+  :recipe (:host github :repo "gmlarumbe/vhdl-ext"))
+#+end_src
+
+#+begin_src emacs-lisp
+;; Better integrated symbol highlight
+(package! symbol-overlay
+  :recipe (:host github :repo "wolray/symbol-overlay"))
+
+;; Claude Code IDE
+(package! claude-code-ide
+  :recipe (:host github :repo "manzaltu/claude-code-ide.el"))
+#+end_src
+
+=eat= is pulled in with ~straight-use-package~ rather than ~package!~ because
+the recipe needs the explicit ~:files~ list to ship its terminfo database.
+
+#+begin_src emacs-lisp
+;; EAT terminal easier than vterm (do not need to compile C library)
+(straight-use-package
+ '(eat :type git
+       :host codeberg
+       :repo "akib/emacs-eat"
+       :files ("*.el" ("term" "term/*.el") "*.texi"
+               "*.ti" ("terminfo/e" "terminfo/e/*")
+               ("terminfo/65" "terminfo/65/*")
+               ("integration" "integration/*")
+               (:exclude ".dir-locals.el" "*-tests.el"))))
+#+end_src
+
+#+begin_src emacs-lisp
+;; Mermaid mode
+(package! mermaid-mode
+  :recipe (:host github :repo "abrochard/mermaid-mode"))
+
+(package! clang-format
+  :recipe (:host github :repo "emacsmirror/clang-format"))
+#+end_src
