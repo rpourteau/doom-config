@@ -31,3 +31,6 @@
 ;; Mermaid mode
 (package! mermaid-mode
   :recipe (:host github :repo "abrochard/mermaid-mode"))
+
+(package! clang-format
+  :recipe (:host github :repo "emacsmirror/clang-format"))
