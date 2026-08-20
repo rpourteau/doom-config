@@ -14,7 +14,8 @@
 
 ;; Org roam directory
 ;; (setq org-roam-directory (file-truename "~/org-roam"))
-(setq org-roam-directory "~/org-roam")
+(setq org-directory "~/org")
+(setq org-roam-directory "~/org/roam")
 (setq org-agenda-files
       (list org-roam-directory))
 
