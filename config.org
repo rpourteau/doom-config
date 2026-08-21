@@ -98,6 +98,12 @@ Enable Cpp clang formatting when using LSP server on C/Cpp files
   :recipe (:host github :repo "emacsmirror/clang-format"))
 #+end_src
 
+CMake integration
+#+begin_src emacs-lisp
+(package! cmake-integration
+  :recipe (:host github :repo "darcamo/cmake-integration"))
+#+end_src
+
 * Core
 
 Identity, used by Doom for templates and by anything that signs commits or
