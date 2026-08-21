@@ -29,6 +29,75 @@ tangled file.
 ;;; Generated from config.org by the :config literate module. Do not edit.
 #+end_src
 
+* Packages
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle packages.el
+:END:
+
+Everything under this heading tangles to =$DOOMDIR/packages.el= instead of
+=config.el=, via the ~header-args~ property above. Run =doom sync= after editing
+any of it.
+
+The first block must stay first — =no-byte-compile= has to be on line 1 of the
+tangled file.
+
+#+begin_src emacs-lisp
+;; -*- no-byte-compile: t; -*-
+;;; $DOOMDIR/packages.el
+;;; Generated from config.org by the :config literate module. Do not edit.
+#+end_src
+
+Hardware description and register-description languages.
+
+#+begin_src emacs-lisp
+;; systemrdl mode
+(package! systemrdl-mode
+  :recipe (:host github :repo "paul-donahue/systemrdl-mode"))
+
+;; Required to support LSP on VHDL
+(package! vhdl-ext
+  :recipe (:host github :repo "gmlarumbe/vhdl-ext"))
+#+end_src
+
+#+begin_src emacs-lisp
+;; Better integrated symbol highlight
+(package! symbol-overlay
+  :recipe (:host github :repo "wolray/symbol-overlay"))
+
+;; Claude Code IDE
+(package! claude-code-ide
+  :recipe (:host github :repo "manzaltu/claude-code-ide.el"))
+#+end_src
+
+=eat= is pulled in with ~straight-use-package~ rather than ~package!~ because
+the recipe needs the explicit ~:files~ list to ship its terminfo database.
+
+#+begin_src emacs-lisp
+;; EAT terminal easier than vterm (do not need to compile C library)
+(straight-use-package
+ '(eat :type git
+       :host codeberg
+       :repo "akib/emacs-eat"
+       :files ("*.el" ("term" "term/*.el") "*.texi"
+               "*.ti" ("terminfo/e" "terminfo/e/*")
+               ("terminfo/65" "terminfo/65/*")
+               ("integration" "integration/*")
+               (:exclude ".dir-locals.el" "*-tests.el"))))
+#+end_src
+
+Package to be able to compile and generate image from mermaid diagrams
+#+begin_src emacs-lisp
+;; Mermaid mode
+(package! mermaid-mode
+  :recipe (:host github :repo "abrochard/mermaid-mode"))
+#+end_src
+
+Enable Cpp clang formatting when using LSP server on C/Cpp files
+#+begin_src emacs-lisp
+(package! clang-format
+  :recipe (:host github :repo "emacsmirror/clang-format"))
+#+end_src
+
 * Core
 
 Identity, used by Doom for templates and by anything that signs commits or
@@ -382,67 +451,3 @@ for the TUI.
                 (evil-emacs-state)))))
 #+end_src
 
-* Packages
-:PROPERTIES:
-:header-args:emacs-lisp: :tangle packages.el
-:END:
-
-Everything under this heading tangles to =$DOOMDIR/packages.el= instead of
-=config.el=, via the ~header-args~ property above. Run =doom sync= after editing
-any of it.
-
-The first block must stay first — =no-byte-compile= has to be on line 1 of the
-tangled file.
-
-#+begin_src emacs-lisp
-;; -*- no-byte-compile: t; -*-
-;;; $DOOMDIR/packages.el
-;;; Generated from config.org by the :config literate module. Do not edit.
-#+end_src
-
-Hardware description and register-description languages.
-
-#+begin_src emacs-lisp
-;; systemrdl mode
-(package! systemrdl-mode
-  :recipe (:host github :repo "paul-donahue/systemrdl-mode"))
-
-;; Required to support LSP on VHDL
-(package! vhdl-ext
-  :recipe (:host github :repo "gmlarumbe/vhdl-ext"))
-#+end_src
-
-#+begin_src emacs-lisp
-;; Better integrated symbol highlight
-(package! symbol-overlay
-  :recipe (:host github :repo "wolray/symbol-overlay"))
-
-;; Claude Code IDE
-(package! claude-code-ide
-  :recipe (:host github :repo "manzaltu/claude-code-ide.el"))
-#+end_src
-
-=eat= is pulled in with ~straight-use-package~ rather than ~package!~ because
-the recipe needs the explicit ~:files~ list to ship its terminfo database.
-
-#+begin_src emacs-lisp
-;; EAT terminal easier than vterm (do not need to compile C library)
-(straight-use-package
- '(eat :type git
-       :host codeberg
-       :repo "akib/emacs-eat"
-       :files ("*.el" ("term" "term/*.el") "*.texi"
-               "*.ti" ("terminfo/e" "terminfo/e/*")
-               ("terminfo/65" "terminfo/65/*")
-               ("integration" "integration/*")
-               (:exclude ".dir-locals.el" "*-tests.el"))))
-#+end_src
-
-#+begin_src emacs-lisp
-;; Mermaid mode
-(package! mermaid-mode
-  :recipe (:host github :repo "abrochard/mermaid-mode"))
-
-(package! clang-format
-  :recipe (:host github :repo "emacsmirror/clang-format"))
-#+end_src
