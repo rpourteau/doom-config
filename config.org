@@ -126,14 +126,10 @@ The doom modeline offers slick icons and features.
    doom-modeline-major-mode-icon t))
 #+end_src
 
-~display-line-numbers-type~ is ~t~ (absolute numbers) rather than
-Doom's ~'relative~ default.
+~display-line-numbers-type~ is ~t~ (absolute numbers) rather than Doom's ~'relative~ default.
+Also highlight current line globally in all evil modes.
 #+begin_src emacs-lisp
 (setq display-line-numbers-type 't)
-#+end_src
-
-Highlight current line globally
-#+begin_src emacs-lisp
 (setq global-hl-line-modes t)
 #+end_src
 
