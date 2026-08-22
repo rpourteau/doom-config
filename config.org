@@ -13,7 +13,7 @@ Doom Emacs requires three elisp files to function:
 - =config.el= and =packages.el= are *generated* by this file. Never edit them by hand; the
   next save of this file will silently discard the change.
 
-After changing anything under [[*Packages][Packages]], run =doom sync= as usual. Changes
+After changing anything under [[#Packages][Packages]], run =doom sync= as usual. Changes
 anywhere else only need =SPC h r r= (~doom/reload~).
 
 * Packages
@@ -46,7 +46,7 @@ For doom emacs, the first block must stay first — =no-byte-compile= has to be 
   :recipe (:host github :repo "gmlarumbe/vhdl-ext"))
 #+end_src
 
-[[https://github.com/symbol-overlay][symbol-overlay]] is a better integrated symbol highlight
+[[https://github.com/wolray/symbol-overlay][symbol-overlay]] is a better integrated symbol highlight
 #+begin_src emacs-lisp
 ;; Better integrated symbol highlight
 (package! symbol-overlay
