@@ -1,7 +1,12 @@
 #+title: Doom Emacs configuration
 #+author: rpourteau
-#+property:
+#+description: My doom emacs conf
 #+startup: overview
+:PROPERTIES:
+:TOC:      :include all :ignore this
+:END:
+
+:TOC:
 
 * About this config
 This is my literate Doom Emacs configuration. Literate configuration allows better package and configuration
@@ -13,7 +18,7 @@ Doom Emacs requires three elisp files to function:
 - =config.el= and =packages.el= are *generated* by this file. Never edit them by hand; the
   next save of this file will silently discard the change.
 
-After changing anything under [[#Packages][Packages]], run =doom sync= as usual. Changes
+After changing anything under [[#packages][Packages]], run =doom sync= as usual. Changes
 anywhere else only need =SPC h r r= (~doom/reload~).
 
 * Packages
@@ -81,6 +86,13 @@ the recipe needs the explicit ~:files~ list to ship its terminfo database.
 ;; Mermaid mode
 (package! mermaid-mode
   :recipe (:host github :repo "abrochard/mermaid-mode"))
+#+end_src
+
+[[https://github.com/sabof/org-bullets][org-bullets]]: provides nice UTF-8 bullets for org files.
+#+begin_src emacs-lisp
+;;
+(package! org-bullets
+  :recipe (:host github :repo "sabof/org-bullets"))
 #+end_src
 
 * Config
@@ -222,7 +234,7 @@ I am trying to be smart in the shortcuts letters mapping tho.
       :desc "Toggle treemacs" "t" #'+treemacs/toggle)
 #+end_src
 
-~my/toggle-term~ is defined under [[#Terminal toggle][Terminal toggle]].
+~my/toggle-term~ is defined under [[###Org-mode][Terminal toggle]].
 
 =SPC t= is for opening commands
 #+begin_src emacs-lisp
@@ -357,22 +369,22 @@ The raised watch threshold keeps LSP from prompting on large HDL trees.
 
 ** Tools
 *** Org Mode
-Org-mode is emacs upgrade to Markdown. This entire configuration is written in org-mode that allows to generate
-a clean doc and tangle each part of the config to output .el files.
+# Org-mode is emacs upgrade to Markdown. This entire configuration is written in org-mode that allows to generate
+# a clean doc and tangle each part of the config to output .el files.
 
-But org-mode can also be used in emacs to take notes and plan tasks with org-agenda, org-roam and so much more.
+# But org-mode can also be used in emacs to take notes and plan tasks with org-agenda, org-roam and so much more.
 
-Org and org-roam live under =~/org=; the agenda scans the roam directory so TODOs captured in notes show up there.
-#+begin_src emacs-lisp
-;; Org roam directory
-;; (setq org-roam-directory (file-truename "~/org-roam"))
-(setq org-directory "~/org")
-(setq org-roam-directory "~/org/roam")
-(setq org-agenda-files
-      (list org-roam-directory))
+# Org and org-roam live under =~/org=; the agenda scans the roam directory so TODOs captured in notes show up there.
+# #+begin_src emacs-lisp
+# ;; Org roam directory
+# ;; (setq org-roam-directory (file-truename "~/org-roam"))
+# (setq org-directory "~/org")
+# (setq org-roam-directory "~/org/roam")
+# (setq org-agenda-files
+#       (list org-roam-directory))
 
-(org-roam-db-autosync-mode)
-#+end_src
+# (org-roam-db-autosync-mode)
+# #+end_src
 
 *** Symbol overlay
 
@@ -443,4 +455,76 @@ the Claude buffer straight into Emacs state so evil doesn't intercept keys.
             (lambda ()
               (when (string-match-p "claude-code" (buffer-name))
                 (evil-emacs-state)))))
+#+end_src
+
+* ORG MODE
+Org Mode is =THE= killer feature within Emacs. But it does need some tweaking.
+
+** Defining A Few Things
+#+begin_src emacs-lisp
+(add-hook 'org-mode-hook 'org-indent-mode)
+(setq org-directory "~/org/"
+      org-agenda-files '("~/org/agenda.org")
+      org-default-notes-file (expand-file-name "notes.org" org-directory)
+      org-ellipsis " ▼ "
+      org-log-done 'time
+      org-journal-dir "~/org/journal/"
+      org-journal-date-format "%B %d, %Y (%A) "
+      org-journal-file-format "%Y-%m-%d.org"
+      org-hide-emphasis-markers t)
+(setq org-src-preserve-indentation nil
+      org-src-tab-acts-natively t
+      org-edit-src-content-indentation 0)
+#+end_src
+
+** Enabling Org Bullets
+Org-bullets gives us attractive bullets rather than asterisks.
+
+#+begin_src emacs-lisp
+(use-package! org-bullets)
+(add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+#+end_src
+
+** Org To-do Keywords
+This creates the various TODO tags that we can use in Org.
+
+#+begin_src emacs-lisp
+  (setq org-todo-keywords        ; This overwrites the default Doom org-todo-keywords
+          '((sequence
+             "TODO(t)"           ; A task that is ready to be tackled
+             "WAIT(w)"           ; Something is holding up this task
+             "|"                 ; The pipe necessary to separate "active" states and "inactive" states
+             "DONE(d)"           ; Task has been completed
+             "CANCELLED(c)" )))  ; Task has been cancelled
+#+end_src
+
+** Source Code Block Syntax Highlighting
+We want the same syntax highlighting in source blocks as in the native language files.
+
+#+begin_src emacs-lisp
+(setq org-src-fontify-natively t
+    org-src-tab-acts-natively t
+    org-confirm-babel-evaluate nil
+    org-edit-src-content-indentation 0)
+#+end_src
+
+** Automatically Create Table of Contents
+Toc-org helps you to have an up-to-date table of contents in org files without exporting (useful for README files on GitHub).  Use :TOC: to create the table.
+
+#+begin_src emacs-lisp
+  (use-package! toc-org
+    :commands toc-org-enable
+    :init (add-hook 'org-mode-hook 'toc-org-enable))
+#+end_src
+
+** Make M-RET Not Add Blank Lines
+#+begin_src emacs-lisp
+(setq org-blank-before-new-entry (quote ((heading . nil)
+                                         (plain-list-item . nil))))
+#+end_src
+
+** Org Export To Manpage Format
+#+begin_src emacs-lisp
+(use-package! ox-man
+  :ensure nil)
 #+end_src
