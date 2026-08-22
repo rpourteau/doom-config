@@ -32,28 +32,28 @@ For doom emacs, the first block must stay first — =no-byte-compile= has to be 
 ;;; Generated from config.org by the :config literate module. Do not edit.
 #+end_src
 
-systemrdl-mode
+[[https://github.com/paul-donahue/systemrdl-mode][systemrdl-mode]]
 #+begin_src emacs-lisp
 ;; systemrdl mode
 (package! systemrdl-mode
   :recipe (:host github :repo "paul-donahue/systemrdl-mode"))
 #+end_src
 
-vhdl-ext enables LSP supporton VHDL
+[[https://github.com/gmlarumbe/vhdl-ext][vhdl-ext]] enables LSP support on VHDL
 #+begin_src emacs-lisp
 ;; Required to support LSP on VHDL
 (package! vhdl-ext
   :recipe (:host github :repo "gmlarumbe/vhdl-ext"))
 #+end_src
 
-symbol-overlay is a etter integrated symbol highlight
+[[https://github.com/symbol-overlay][symbol-overlay]] is a better integrated symbol highlight
 #+begin_src emacs-lisp
 ;; Better integrated symbol highlight
 (package! symbol-overlay
   :recipe (:host github :repo "wolray/symbol-overlay"))
 #+end_src
 
-
+[[https://github.com/manzaltu/claude-code-ide.el][claude-code-ide]] is a simple yet effective integration for Claude.
 #+begin_src emacs-lisp
 ;; Claude Code IDE
 (package! claude-code-ide
@@ -76,23 +76,11 @@ the recipe needs the explicit ~:files~ list to ship its terminfo database.
                (:exclude ".dir-locals.el" "*-tests.el"))))
 #+end_src
 
-Package to be able to compile and generate image from mermaid diagrams
+[[https://github.com/abrochard/mermaid-mode][mermaid-mode]] allows to compile and generate image from mermaid diagrams
 #+begin_src emacs-lisp
 ;; Mermaid mode
 (package! mermaid-mode
   :recipe (:host github :repo "abrochard/mermaid-mode"))
-#+end_src
-
-Enable Cpp clang formatting when using LSP server on C/Cpp files
-#+begin_src emacs-lisp
-(package! clang-format
-  :recipe (:host github :repo "emacsmirror/clang-format"))
-#+end_src
-
-CMake integration
-#+begin_src emacs-lisp
-(package! cmake-integration
-  :recipe (:host github :repo "darcamo/cmake-integration"))
 #+end_src
 
 * Config
