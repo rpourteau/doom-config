@@ -1,45 +1,30 @@
 #+title: Doom Emacs configuration
 #+author: rpourteau
-#+property: header-args:emacs-lisp :tangle config.el :results silent
+#+property:
 #+startup: overview
 
-This is my literate Doom Emacs configuration. The =:config literate= module
-tangles every =emacs-lisp= block below into =$DOOMDIR/config.el= (and a few into
-=$DOOMDIR/packages.el=, see [[*Packages][Packages]]) whenever =doom sync= runs, and
-asynchronously whenever this file is saved. Nothing here is loaded at startup —
-Emacs only ever reads the tangled output.
+* About this config
+This is my literate Doom Emacs configuration. Literate configuration allows better package and configuration
+management and easier deployment and share since the documentation is alongside the config.
 
-Two consequences worth remembering:
-
-- =config.el= and =packages.el= are *generated*. Never edit them by hand; the
-  next save of this file will silently discard the change.
+Doom Emacs requires three elisp files to function:
 - =init.el= stays hand-written. Doom reads module =init.el= files long before
   =config.org= is tangled, so it cannot be made literate with this module.
+- =config.el= and =packages.el= are *generated* by this file. Never edit them by hand; the
+  next save of this file will silently discard the change.
 
 After changing anything under [[*Packages][Packages]], run =doom sync= as usual. Changes
 anywhere else only need =SPC h r r= (~doom/reload~).
-
-* Header
-
-Must be the very first block so the file-local variables land on line 1 of the
-tangled file.
-
-#+begin_src emacs-lisp
-;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
-;;; Generated from config.org by the :config literate module. Do not edit.
-#+end_src
 
 * Packages
 :PROPERTIES:
 :header-args:emacs-lisp: :tangle packages.el
 :END:
 
-Everything under this heading tangles to =$DOOMDIR/packages.el= instead of
-=config.el=, via the ~header-args~ property above. Run =doom sync= after editing
-any of it.
+Everything under this heading tangles to =$DOOMDIR/packages.el=.
+Doom emacs use straight as package manager. Every new packages that are not already installed with ==init.el== must be downloaded package.el.
 
-The first block must stay first — =no-byte-compile= has to be on line 1 of the
-tangled file.
+For doom emacs, the first block must stay first — =no-byte-compile= has to be on line 1 of the tangled file.
 
 #+begin_src emacs-lisp
 ;; -*- no-byte-compile: t; -*-
@@ -47,23 +32,29 @@ tangled file.
 ;;; Generated from config.org by the :config literate module. Do not edit.
 #+end_src
 
-Hardware description and register-description languages.
-
+systemrdl-mode
 #+begin_src emacs-lisp
 ;; systemrdl mode
 (package! systemrdl-mode
   :recipe (:host github :repo "paul-donahue/systemrdl-mode"))
+#+end_src
 
+vhdl-ext enables LSP supporton VHDL
+#+begin_src emacs-lisp
 ;; Required to support LSP on VHDL
 (package! vhdl-ext
   :recipe (:host github :repo "gmlarumbe/vhdl-ext"))
 #+end_src
 
+symbol-overlay is a etter integrated symbol highlight
 #+begin_src emacs-lisp
 ;; Better integrated symbol highlight
 (package! symbol-overlay
   :recipe (:host github :repo "wolray/symbol-overlay"))
+#+end_src
 
+
+#+begin_src emacs-lisp
 ;; Claude Code IDE
 (package! claude-code-ide
   :recipe (:host github :repo "manzaltu/claude-code-ide.el"))
@@ -104,103 +95,75 @@ CMake integration
   :recipe (:host github :repo "darcamo/cmake-integration"))
 #+end_src
 
-* Core
+* Config
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle config.el
+:END:
 
-Identity, used by Doom for templates and by anything that signs commits or
-messages.
+Everything under this heading tangles to =$DOOMDIR/config.el=.
+This is where UI settings are set, packages configured, custom tools installed and more.
 
+For doom emacs, the first block must stay first — =no-byte-compile= has to be on line 1 of the tangled file.
+
+#+begin_src emacs-lisp
+;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
+;;; Generated from config.org by the :config literate module. Do not edit.
+#+end_src
+
+** User settings
+Of course if you are not me, you should update with whatever are your name and email.
 #+begin_src emacs-lisp
 ;; User identity
 (setq user-full-name "rpourteau"
       user-mail-address "remy.pourteau@cosylab.com")
 #+end_src
 
-Appearance. ~display-line-numbers-type~ is ~t~ (absolute numbers) rather than
-Doom's ~'relative~ default.
+** Appearance
+
+Set JetBrains Mono as default font and chose the version without ligatures (NL) because ligatures fonts
+do not do great with VHDL. Doom's them doom-one is my favorite, but each theme can be temporally applied
+to test with command =SPC h t= (~load-theme~).
 
 #+begin_src emacs-lisp
 ;; Theme and font
 (setq doom-font (font-spec :family "JetBrains Mono NL" :size 18))
 (setq doom-theme 'doom-one)
-(setq display-line-numbers-type 't)
+#+end_src
 
-;; Highlight current line globally
+The doom modeline offers slick icons and features.
+#+begin_src emacs-lisp
+(after! doom-modeline
+  (setq
+   doom-modeline-github t
+   doom-modeline-major-mode-icon t))
+#+end_src
+
+~display-line-numbers-type~ is ~t~ (absolute numbers) rather than
+Doom's ~'relative~ default.
+#+begin_src emacs-lisp
+(setq display-line-numbers-type 't)
+#+end_src
+
+Highlight current line globally
+#+begin_src emacs-lisp
 (setq global-hl-line-modes t)
 #+end_src
 
-Org and org-roam live under =~/org=; the agenda scans the roam directory so
-TODOs captured in notes show up there.
+** Evil adjustments
+I got to love evil mode, but there are some features that needed to be adjusted to
+my liking.
 
-#+begin_src emacs-lisp
-;; Org roam directory
-;; (setq org-roam-directory (file-truename "~/org-roam"))
-(setq org-directory "~/org")
-(setq org-roam-directory "~/org/roam")
-(setq org-agenda-files
-      (list org-roam-directory))
-
-(org-roam-db-autosync-mode)
-#+end_src
-
+Enabling upper/downcase region.
 #+begin_src emacs-lisp
 ;; Enable case commands
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
 #+end_src
 
-* Keybindings
-** Global
-
-#+begin_src emacs-lisp
-(global-set-key (kbd "C-z") 'undo)
-(global-set-key (kbd "C-c d") #'lsp-find-definition)
-#+end_src
-
-** Leader (=SPC=)
-
-=SPC l= is my own prefix for one-off commands that don't fit elsewhere.
-
-#+begin_src emacs-lisp
-;; SPC l - custom commands
-(map! :leader
-      :prefix "l"
-      :desc "Remove symbol overlay" "s" #'symbol-overlay-remove-all
-      :desc "Launch Claude Code IDE" "i" #'claude-code-ide
-      :desc "List flycheck errors" "l" #'flycheck-list-errors
-      :desc "Start python interpreter" "p" #'run-python
-      :desc "Comment-line" "c" #'comment-line
-      :desc "Call rgrep" "g" #'rgrep)
-#+end_src
-
-#+begin_src emacs-lisp
-;; SPC t - toggles
-(map! :leader
-      :prefix "t"
-      :desc "Toggle menu bar mode" "m" #'menu-bar-mode
-      :desc "Toggle pop-up" "p" #'+popup/toggle
-      :desc "Toggle treemacs" "t" #'+treemacs/toggle)
-#+end_src
-
-~my/toggle-term~ is defined under [[*Terminal toggle][Terminal toggle]].
-
-#+begin_src emacs-lisp
-;; SPC o - open
-(map! :leader
-      :prefix "o"
-      :desc "New frame" "f" #'make-frame-command
-      :desc "Toggle terminal" "t" #'my/toggle-term)
-#+end_src
-
-** Evil
-
-A handful of vanilla-Emacs reflexes I refuse to give up inside evil.
-
+The following restores some vanilla emacs commands that I still use even with evil.
 #+begin_src emacs-lisp
 ;; Enable C-x C-s in insert mode
 (define-key evil-insert-state-map (kbd "C-x C-s") #'save-buffer)
-
-;; Make :q kill the buffer instead of the frame
-(evil-ex-define-cmd "q" 'kill-current-buffer)
 
 ;; Restore C-y to yank from kill-ring in insert mode
 (map! :i "C-y" #'yank)
@@ -210,6 +173,14 @@ A handful of vanilla-Emacs reflexes I refuse to give up inside evil.
       :v "C-e" #'evil-end-of-line)
 #+end_src
 
+Completely killing emacs frame with ==:q== is not cool, this makes it only kill the current buffer.
+#+begin_src emacs-lisp
+;; Make :q kill the buffer instead of the frame
+(evil-ex-define-cmd "q" 'kill-current-buffer)
+#+end_src
+
+Pressing =jk= instead on =ECS= to switch back to normal mode is a must.
+My compulsive command is =jk= followed by =SPC f s= (~save-file~).
 #+begin_src emacs-lisp
 ;; Easy escape from insert mode
 (after! evil-escape
@@ -218,7 +189,7 @@ A handful of vanilla-Emacs reflexes I refuse to give up inside evil.
 #+end_src
 
 Keeping point vertically centred after a jump saves a lot of re-orientation.
-Applies to half-page scrolls and to every flavour of search.
+Applies to half-page scrolls and to every type of search.
 
 #+begin_src emacs-lisp
 ;; Center after half-page scrolls and searches
@@ -252,8 +223,49 @@ Applies to half-page scrolls and to every flavour of search.
     (advice-add cmd :after #'my/recenter-after-search)))
 #+end_src
 
-* Languages
-** SystemRDL
+** Keybindings
+With evil mode =SPC= acts as emacs =C-c/C-x= and it waits for another letter.
+Everything can be overwritten, but I like to keep the default and add my own keybinds.
+I am trying to be smart in the shortcuts letters mapping tho.
+
+=SPC t= is for toggling commands.
+#+begin_src emacs-lisp
+;; SPC t - toggles
+(map! :leader
+      :prefix "t"
+      :desc "Toggle menu bar mode" "m" #'menu-bar-mode
+      :desc "Toggle pop-up" "p" #'+popup/toggle
+      :desc "Toggle treemacs" "t" #'+treemacs/toggle)
+#+end_src
+
+~my/toggle-term~ is defined under [[*Terminal toggle][Terminal toggle]].
+
+=SPC t= is for opening commands
+#+begin_src emacs-lisp
+;; SPC o - open
+(map! :leader
+      :prefix "o"
+      :desc "New frame" "f" #'make-frame-command
+      :desc "Toggle terminal" "t" #'my/toggle-term)
+#+end_src
+
+=SPC l= is for custom commands that don't fit elsewhere.
+#+begin_src emacs-lisp
+;; SPC l - custom commands
+(map! :leader
+      :prefix "l"
+      :desc "Remove symbol overlay" "s" #'symbol-overlay-remove-all
+      :desc "Launch Claude Code IDE" "i" #'claude-code-ide
+      :desc "List flycheck errors" "l" #'flycheck-list-errors
+      :desc "Start python interpreter" "p" #'run-python
+      :desc "Comment-line" "c" #'comment-line
+      :desc "Call rgrep" "g" #'rgrep)
+#+end_src
+
+** Languages
+Most languages package work perfectly with their defaults settings but some languages major mode might need
+custom settings to either work properly or work to my liking.
+*** SystemRDL
 
 =systemrdl-mode= doesn't provide a working ~indent-region-function~, so clearing
 it forces Emacs to fall back to line-by-line indentation, which does behave.
@@ -277,12 +289,8 @@ it forces Emacs to fall back to line-by-line indentation, which does behave.
   (add-hook 'systemrdl-mode-hook #'my/systemrdl-indent-settings))
 #+end_src
 
-** VHDL
-
-House style plus the Cosylab file/process templates. ~vhdl-model-alist~ entries
-are ~(NAME TEMPLATE KEY ...)~; the key is what you type after ~C-c C-m~, and
-=\12= is a literal newline inside the template string.
-
+*** VHDL
+**** Setting and vhdl-mode templates
 #+begin_src emacs-lisp
 (use-package! vhdl-mode
     :mode ("\\.vhd\\'" "\\.vhdl\\'")
@@ -325,7 +333,7 @@ are ~(NAME TEMPLATE KEY ...)~; the key is what you type after ~C-c C-m~, and
     )
 #+end_src
 
-*** vhdl-ext
+**** LSP for VHDL
 
 Only the features I actually use are enabled — the full ~vhdl-ext-feature-list~
 pulls in linting, beautifying and templating that would fight the settings
@@ -349,8 +357,6 @@ above.
 (add-hook! vhdl-mode #'lsp!)
 #+end_src
 
-** LSP
-
 The client registered here is the one ~vhdl-ext-lsp-set-server~ selects above.
 The raised watch threshold keeps LSP from prompting on large HDL trees.
 
@@ -365,8 +371,23 @@ The raised watch threshold keeps LSP from prompting on large HDL trees.
     :server-id 've-rust-hdl)))
 #+end_src
 
-* Tools
-** Symbol overlay
+** Tools
+*** Org Mode
+Org and org-roam live under =~/org=; the agenda scans the roam directory so
+TODOs captured in notes show up there.
+
+#+begin_src emacs-lisp
+;; Org roam directory
+;; (setq org-roam-directory (file-truename "~/org-roam"))
+(setq org-directory "~/org")
+(setq org-roam-directory "~/org/roam")
+(setq org-agenda-files
+      (list org-roam-directory))
+
+(org-roam-db-autosync-mode)
+#+end_src
+
+*** Symbol overlay
 
 The single-letter bindings in ~symbol-overlay-map~ shadow evil's normal-state
 motions while an overlay is active, so they all get unbound.
@@ -395,16 +416,7 @@ motions while an overlay is active, so they all get unbound.
   (define-key symbol-overlay-map (kbd ">") nil))
 #+end_src
 
-** Modeline
-
-#+begin_src emacs-lisp
-(after! doom-modeline
-  (setq
-   doom-modeline-github t
-   doom-modeline-major-mode-icon t))
-#+end_src
-
-** Terminal toggle
+*** Terminal toggle
 
 A single reusable =term= buffer in a bottom split, bound to =SPC o t=.
 
@@ -430,21 +442,10 @@ A single reusable =term= buffer in a bottom split, bound to =SPC o t=.
 (add-hook 'term-mode-hook #'ansi-color-for-comint-mode-on)
 #+end_src
 
-** Workspaces and frames
-
-Without this, ~emacsclient -c~ creates or switches workspaces instead of just
-opening a frame on the current one.
-
-#+begin_src emacs-lisp
-(after! persp-mode
-  (setq persp-emacsclient-init-frame-behaviour-override -1))
-#+end_src
-
-** Claude Code IDE
+*** Claude Code IDE
 
 Backed by =eat= rather than =vterm= (no C library to compile). The hook drops
-the Claude buffer straight into Emacs state so evil doesn't intercept keys meant
-for the TUI.
+the Claude buffer straight into Emacs state so evil doesn't intercept keys.
 
 #+begin_src emacs-lisp
 (after! claude-code-ide
@@ -456,4 +457,3 @@ for the TUI.
               (when (string-match-p "claude-code" (buffer-name))
                 (evil-emacs-state)))))
 #+end_src
-
