@@ -2,11 +2,25 @@
 #+author: rpourteau
 #+description: My doom emacs conf
 #+startup: overview
-:PROPERTIES:
-:TOC:      :include all :ignore this
-:END:
 
-:TOC:
+* Table Of Contents :TOC:
+- [[#about-this-config][About this config]]
+- [[#packages][Packages]]
+- [[#config][Config]]
+  - [[#user-settings][User settings]]
+  - [[#appearance][Appearance]]
+  - [[#evil-adjustments][Evil adjustments]]
+  - [[#keybindings][Keybindings]]
+  - [[#languages][Languages]]
+  - [[#tools][Tools]]
+- [[#org-mode][ORG MODE]]
+  - [[#defining-a-few-things][Defining A Few Things]]
+  - [[#enabling-org-bullets][Enabling Org Bullets]]
+  - [[#org-to-do-keywords][Org To-do Keywords]]
+  - [[#source-code-block-syntax-highlighting][Source Code Block Syntax Highlighting]]
+  - [[#automatically-create-table-of-contents][Automatically Create Table of Contents]]
+  - [[#make-m-ret-not-add-blank-lines][Make M-RET Not Add Blank Lines]]
+  - [[#org-exports][Org Exports]]
 
 * About this config
 This is my literate Doom Emacs configuration. Literate configuration allows better package and configuration
@@ -18,7 +32,7 @@ Doom Emacs requires three elisp files to function:
 - =config.el= and =packages.el= are *generated* by this file. Never edit them by hand; the
   next save of this file will silently discard the change.
 
-After changing anything under [[#packages][Packages]], run =doom sync= as usual. Changes
+After changing anything under Packages, run =doom sync= as usual. Changes
 anywhere else only need =SPC h r r= (~doom/reload~).
 
 * Packages
@@ -234,7 +248,7 @@ I am trying to be smart in the shortcuts letters mapping tho.
       :desc "Toggle treemacs" "t" #'+treemacs/toggle)
 #+end_src
 
-~my/toggle-term~ is defined under [[###Org-mode][Terminal toggle]].
+~my/toggle-term~ is defined in config tools.
 
 =SPC t= is for opening commands
 #+begin_src emacs-lisp
@@ -523,8 +537,5 @@ Toc-org helps you to have an up-to-date table of contents in org files without e
                                          (plain-list-item . nil))))
 #+end_src
 
-** Org Export To Manpage Format
-#+begin_src emacs-lisp
-(use-package! ox-man
-  :ensure nil)
-#+end_src
+** Org Exports
+I use pandoc for the exports.
