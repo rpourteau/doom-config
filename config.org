@@ -21,6 +21,7 @@
   - [[#automatically-create-table-of-contents][Automatically Create Table of Contents]]
   - [[#make-m-ret-not-add-blank-lines][Make M-RET Not Add Blank Lines]]
   - [[#org-exports][Org Exports]]
+  - [[#fast-search-with-deft][Fast search with Deft]]
 
 * About this config
 This is my literate Doom Emacs configuration. Literate configuration allows better package and configuration
@@ -541,3 +542,18 @@ Toc-org helps you to have an up-to-date table of contents in org files without e
 
 ** Org Exports
 I use pandoc for the exports.
+
+** Fast search with Deft
+[[https://github.com/jrblevin/deft][Deft]] is enabled in ~init.el~ and is a good tool for quick search in notes
+
+Set the deft directory to look into org folder recursively only focusing on ~org~ files.
+#+begin_src emacs-lisp
+(setq deft-extensions '("org"))
+(setq deft-directory "~/org")
+(setq deft-recursive t)
+#+end_src
+
+This option shows the file name as search result instead of first document line
+#+begin_src emacs-lisp
+(setq deft-use-filename-as-title t)
+#+end_src
