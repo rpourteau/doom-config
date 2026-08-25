@@ -382,24 +382,6 @@ The raised watch threshold keeps LSP from prompting on large HDL trees.
 #+end_src
 
 ** Tools
-*** Org Mode
-# Org-mode is emacs upgrade to Markdown. This entire configuration is written in org-mode that allows to generate
-# a clean doc and tangle each part of the config to output .el files.
-
-# But org-mode can also be used in emacs to take notes and plan tasks with org-agenda, org-roam and so much more.
-
-# Org and org-roam live under =~/org=; the agenda scans the roam directory so TODOs captured in notes show up there.
-# #+begin_src emacs-lisp
-# ;; Org roam directory
-# ;; (setq org-roam-directory (file-truename "~/org-roam"))
-# (setq org-directory "~/org")
-# (setq org-roam-directory "~/org/roam")
-# (setq org-agenda-files
-#       (list org-roam-directory))
-
-# (org-roam-db-autosync-mode)
-# #+end_src
-
 *** Symbol overlay
 
 The single-letter bindings in ~symbol-overlay-map~ shadow evil's normal-state
@@ -472,13 +454,17 @@ the Claude buffer straight into Emacs state so evil doesn't intercept keys.
 #+end_src
 
 * ORG MODE
-Org Mode is =THE= killer feature within Emacs. But it does need some tweaking.
+Org-mode is emacs upgrade to Markdown. This entire configuration is written in org-mode that allows to generate
+a clean doc and tangle each part of the config to output .el files.
+
+But org-mode can also be used in emacs to take notes and plan tasks with org-agenda, org-roam and so much more.
+
+Org and org-roam live under =~/org=; the agenda scans the roam directory so TODOs captured in notes show up there.
 
 ** Defining A Few Things
 #+begin_src emacs-lisp
 (add-hook 'org-mode-hook 'org-indent-mode)
 (setq org-directory "~/org/"
-      org-agenda-files '("~/org/agenda.org")
       org-default-notes-file (expand-file-name "notes.org" org-directory)
       org-ellipsis " ▼ "
       org-log-done 'time
@@ -489,6 +475,19 @@ Org Mode is =THE= killer feature within Emacs. But it does need some tweaking.
 (setq org-src-preserve-indentation nil
       org-src-tab-acts-natively t
       org-edit-src-content-indentation 0)
+#+end_src
+
+# #+begin_src emacs-lisp
+# ;; Org roam directory
+# ;; (setq org-roam-directory (file-truename "~/org-roam"))
+# (setq org-directory "~/org")
+# (setq org-roam-directory "~/org/roam")
+# (setq org-agenda-files
+#       (list org-roam-directory))
+
+Auto data base synchronization
+#+begin_src emacs-lisp
+(org-roam-db-autosync-mode)
 #+end_src
 
 ** Enabling Org Bullets
