@@ -477,13 +477,16 @@ Org and org-roam live under =~/org=; the agenda scans the roam directory so TODO
       org-edit-src-content-indentation 0)
 #+end_src
 
-# #+begin_src emacs-lisp
-# ;; Org roam directory
-# ;; (setq org-roam-directory (file-truename "~/org-roam"))
-# (setq org-directory "~/org")
-# (setq org-roam-directory "~/org/roam")
-# (setq org-agenda-files
-#       (list org-roam-directory))
+#+begin_src emacs-lisp
+;; Org roam directory
+;; (setq org-roam-directory (file-truename "~/org-roam"))
+(setq org-roam-directory "~/org/roam")
+(setq org-roam-daily-directory "~/org/roam/daily")
+(setq org-agenda-files
+      (list org-directory
+            org-roam-directory
+            org-roam-daily-directory))
+#+end_src
 
 Auto data base synchronization
 #+begin_src emacs-lisp
