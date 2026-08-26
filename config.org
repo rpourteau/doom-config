@@ -103,9 +103,8 @@ the recipe needs the explicit ~:files~ list to ship its terminfo database.
   :recipe (:host github :repo "abrochard/mermaid-mode"))
 #+end_src
 
-[[https://github.com/sabof/org-bullets][org-bullets]]: provides nice UTF-8 bullets for org files.
+[[https://github.com/sabof/org-bullets][org-bullets]] provides nice UTF-8 bullets for org files.
 #+begin_src emacs-lisp
-;;
 (package! org-bullets
   :recipe (:host github :repo "sabof/org-bullets"))
 #+end_src
@@ -251,7 +250,7 @@ I am trying to be smart in the shortcuts letters mapping tho.
 
 ~my/toggle-term~ is defined in config tools.
 
-=SPC t= is for opening commands
+=SPC o= is for opening commands
 #+begin_src emacs-lisp
 ;; SPC o - open
 (map! :leader
