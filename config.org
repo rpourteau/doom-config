@@ -372,6 +372,7 @@ The raised watch threshold keeps LSP from prompting on large HDL trees.
 
 #+begin_src emacs-lisp
 (after! lsp-mode
+  (setq lsp-client-packages (delq 'lsp-ts-query lsp-client-packages))
   (setq lsp-enable-file-watchers t
         lsp-file-watch-threshold 2000)
   (lsp-register-client
