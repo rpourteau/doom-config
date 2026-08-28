@@ -540,7 +540,11 @@ Toc-org helps you to have an up-to-date table of contents in org files without e
 #+end_src
 
 ** Org Exports
-I use pandoc for the exports.
+I use pandoc for the exports except for markdown.
+#+begin_src emacs-lisp
+(use-package ox-md
+  :ensure nil)
+#+end_src
 
 ** Fast search with Deft
 [[https://github.com/jrblevin/deft][Deft]] is enabled in ~init.el~ and is a good tool for quick search in notes
