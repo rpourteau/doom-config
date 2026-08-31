@@ -15,6 +15,7 @@
   - [[#tools][Tools]]
 - [[#org-mode][ORG MODE]]
   - [[#defining-a-few-things][Defining A Few Things]]
+  - [[#agenda][Agenda]]
   - [[#enabling-org-bullets][Enabling Org Bullets]]
   - [[#org-to-do-keywords][Org To-do Keywords]]
   - [[#source-code-block-syntax-highlighting][Source Code Block Syntax Highlighting]]
@@ -493,6 +494,21 @@ Org and org-roam live under =~/org=; the agenda scans the roam directory so TODO
 Auto data base synchronization
 #+begin_src emacs-lisp
 (org-roam-db-autosync-mode)
+#+end_src
+
+** Agenda
+Automatically add category for org-roam note. In the agenda the prefix before each entry is the /category/.
+When a file sets no category, org falls back to the file name, and org-roam names notes with a timestamp,
+so the agenda shows the timestamp as well of the note name.
+
+#+begin_src emacs-lisp
+;; Give new notes an explicit category so the agenda shows the note title
+;; rather than the timestamped file name.
+(setq org-roam-capture-templates
+      '(("d" "default" plain "%?"
+         :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+                            "#+title: ${title}\n#+category: ${title}\n")
+         :unnarrowed t)))
 #+end_src
 
 ** Enabling Org Bullets
