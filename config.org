@@ -23,6 +23,7 @@
   - [[#make-m-ret-not-add-blank-lines][Make M-RET Not Add Blank Lines]]
   - [[#org-exports][Org Exports]]
   - [[#fast-search-with-deft][Fast search with Deft]]
+  - [[#time-tracking][Time Tracking]]
 
 * About this config
 This is my literate Doom Emacs configuration. Literate configuration allows better package and configuration
@@ -484,11 +485,13 @@ Org and org-roam live under =~/org=; the agenda scans the roam directory so TODO
 ;; Org roam directory
 ;; (setq org-roam-directory (file-truename "~/org-roam"))
 (setq org-roam-directory "~/org/roam")
-(setq org-roam-daily-directory "~/org/roam/daily")
+;; The variable org-roam reads is `org-roam-dailies-directory' (not
+;; `org-roam-daily-directory'), and it is relative to `org-roam-directory'.
+(setq org-roam-dailies-directory "daily/")
 (setq org-agenda-files
       (list org-directory
             org-roam-directory
-            org-roam-daily-directory))
+            (expand-file-name org-roam-dailies-directory org-roam-directory)))
 #+end_src
 
 Auto data base synchronization
@@ -579,3 +582,289 @@ This option shows the file name as search result instead of first document line
 #+begin_src emacs-lisp
 (setq deft-use-filename-as-title t)
 #+end_src
+
+** Time Tracking
+This section defines custom commands to work with org clock to help time spent reporting.
+Time spent per task, entered in the daily notes and summed up at the end of the month.
+
+Time is stored as ordinary org =CLOCK= lines.
+
+Three commands:
+- ~my/org-log-time~ -- log minutes against a task in today's daily note.
+  With a prefix argument it asks for the date instead.
+- ~my/org-time-fill~ -- log time against a task in today's daily note to fill the rest of the day .
+- ~my/org-time-report~ -- build the month's report. Current month by default,
+  prefix argument to pick another.
+
+*** Task List And Locations
+The task list is only completion fodder: any name typed at the prompt is
+accepted and shows up in the report on its own row.
+
+#+begin_src emacs-lisp
+(require 'cl-lib)
+
+(defcustom my/org-time-tasks
+  '("Overhead"
+    "Team Meetings"
+    "VHEE Meeting"
+    "VHEE Design"
+    "Varex")
+  :type '(repeat string)
+  :group 'org-clock)
+
+(defvar my/org-time-heading "Time"
+  "Top-level heading in a daily note under which task time is clocked.")
+
+(defvar my/org-time-day-start "08:00"
+  "Time of day the clock lines of a daily note start stacking from.
+Only durations carry meaning here; the timestamps exist because a CLOCK
+line needs a range.")
+
+(defvar my/org-time-report-directory "~/org/time-reports/"
+  "Directory where `my/org-time-report' writes its monthly reports.")
+#+end_src
+
+*** Finding The Daily Notes
+=my/org-time-daily-files= doubles as the clocktable =:scope=. It returns every
+daily note; the =:block= parameter is to narrow things to one month.
+
+#+begin_src emacs-lisp
+(defun my/org-time-dailies-directory ()
+  "Absolute path of the org-roam dailies directory."
+  (expand-file-name org-roam-dailies-directory org-roam-directory))
+
+(defun my/org-time-daily-files ()
+  "Every org-roam daily note, for use as a clocktable `:scope'."
+  (directory-files (my/org-time-dailies-directory) t "\\`[^.].*\\.org\\'"))
+
+(defun my/org-time-file-day (file)
+  "Return the day-of-month encoded in daily note FILE, or nil."
+  (let ((name (file-name-nondirectory file)))
+    (when (string-match "\\`[0-9]\\{4\\}-[0-9]\\{2\\}-\\([0-9]\\{2\\}\\)\\.org\\'" name)
+      (string-to-number (match-string 1 name)))))
+
+(defun my/org-time-daily-file (time)
+  "Return the daily note for TIME, creating it through org-roam if absent."
+  (let ((file (expand-file-name (format-time-string "%Y-%m-%d.org" time)
+                                (my/org-time-dailies-directory))))
+    (unless (file-exists-p file)
+      (save-window-excursion (org-roam-dailies--capture time t "d")))
+    file))
+#+end_src
+
+*** Entering Time
+A =CLOCK= line needs a start and an end, but the time is reconstructed at the
+end of the day rather than measured. So the lines are stacked back to back from
+=my/org-time-day-start=: the durations are exact, the clock faces are fiction.
+Logging the same task twice in a day appends a second line and the report adds
+them up.
+
+#+begin_src emacs-lisp
+(defun my/org-time-clocked-minutes ()
+  "Total minutes already clocked in the current buffer."
+  (let ((total 0))
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward
+              "^[ \t]*CLOCK:.*=>[ \t]*\\([0-9]+\\):\\([0-9][0-9]\\)" nil t)
+        (setq total (+ total
+                       (* 60 (string-to-number (match-string 1)))
+                       (string-to-number (match-string 2))))))
+    total))
+
+(defun my/org-time-goto-task (task)
+  "Put point at the end of the TASK heading line in the current daily note.
+Both `my/org-time-heading' and the task heading are created when missing."
+  (let ((top (format "^\\* %s[ \t]*$" (regexp-quote my/org-time-heading))))
+    ;; Make sure the container heading exists, then land squarely on it.
+    ;; Daily notes already hold other top-level headings, so the task must be
+    ;; placed inside this subtree rather than wherever point happens to be.
+    (goto-char (point-min))
+    (unless (re-search-forward top nil t)
+      (goto-char (point-max))
+      (unless (bolp) (insert "\n"))
+      (insert "\n* " my/org-time-heading "\n"))
+    (goto-char (point-min))
+    (re-search-forward top)
+    (beginning-of-line)
+    ;; Find or create the task within that subtree.
+    (let ((end (save-excursion (org-end-of-subtree t t) (point-marker))))
+      (if (re-search-forward
+           (format "^\\*\\* %s[ \t]*$" (regexp-quote task)) end t)
+          (end-of-line)
+        (goto-char end)
+        (skip-chars-backward " \t\n")
+        (end-of-line)
+        (insert "\n** " task))
+      (set-marker end nil)))
+  ;; Append after any CLOCK lines already logged against this task, so the
+  ;; day stays in chronological order.
+  (while (save-excursion (forward-line 1) (looking-at "^[ \t]*CLOCK:"))
+    (forward-line 1)
+    (end-of-line)))
+
+;;;###autoload
+(defun my/org-log-time (task minutes &optional date)
+  "Log MINUTES spent on TASK into the org-roam daily note for DATE.
+DATE defaults to today; with a prefix argument, prompt for it.
+
+The time is written as a CLOCK line, so everything that understands
+org clocking -- clocktables, the agenda clock report, `my/org-time-report'
+-- sees it.  Timestamps are stacked from `my/org-time-day-start'; only the
+durations are meaningful."
+  (interactive
+   (list (completing-read "Task: " my/org-time-tasks nil nil)
+         (read-number "Minutes: ")
+         (when current-prefix-arg (org-read-date nil t))))
+  (when (<= minutes 0) (user-error "Minutes must be positive"))
+  (let* ((time (or date (current-time)))
+         (file (my/org-time-daily-file time))
+         (day (format-time-string "%Y-%m-%d " time)))
+    (with-current-buffer (find-file-noselect file)
+      (org-with-wide-buffer
+       (let* ((offset (my/org-time-clocked-minutes))
+              (base (float-time
+                     (org-time-string-to-time
+                      (concat day my/org-time-day-start))))
+              (start (+ base (* 60 offset)))
+              (end (+ start (* 60 minutes))))
+         (my/org-time-goto-task task)
+         (insert "\n" (format "CLOCK: %s--%s => %s"
+                              (format-time-string "[%Y-%m-%d %a %H:%M]"
+                                                  (seconds-to-time start))
+                              (format-time-string "[%Y-%m-%d %a %H:%M]"
+                                                  (seconds-to-time end))
+                              (org-duration-from-minutes minutes)))))
+      (save-buffer))
+    (message "Logged %d min on %s (%s)" minutes task
+             (file-name-nondirectory file))))
+#+end_src
+
+*** Filling A Day
+Most days are a couple of small entries plus one task that soaks up the rest.
+~my/org-time-fill~ logs that remainder: it subtracts whatever is already in the
+day from =my/org-time-workday-minutes= and writes the difference in one go.
+
+It refuses rather than logging a zero or negative entry when the day is already
+full, and it will not create a daily note just to count what is in it.
+
+#+begin_src emacs-lisp
+(defvar my/org-time-workday-minutes 480
+  "Length of a full working day, in minutes, for `my/org-time-fill'.")
+
+(defun my/org-time-day-minutes (time)
+  "Minutes already clocked in the daily note for TIME.
+Returns 0 when that note does not exist yet, without creating it."
+  (let ((file (expand-file-name (format-time-string "%Y-%m-%d.org" time)
+                                (my/org-time-dailies-directory))))
+    (if (not (file-exists-p file))
+        0
+      (with-current-buffer (find-file-noselect file)
+        (org-with-wide-buffer (my/org-time-clocked-minutes))))))
+
+;;;###autoload
+(defun my/org-time-fill (task &optional date)
+  "Log the rest of a full working day against TASK.
+Whatever is already clocked in the day is subtracted from
+`my/org-time-workday-minutes' and the remainder is logged in one go, so
+the small tasks can be entered first and the day's main task simply fills
+what is left.  DATE defaults to today; a prefix argument prompts for it."
+  (interactive
+   (list (completing-read "Fill day with task: " my/org-time-tasks nil nil)
+         (when current-prefix-arg (org-read-date nil t))))
+  (let* ((time (or date (current-time)))
+         (logged (my/org-time-day-minutes time))
+         (remaining (- my/org-time-workday-minutes logged)))
+    (when (<= remaining 0)
+      (user-error "Day already holds %s of a %s day; nothing left to fill"
+                  (org-duration-from-minutes logged)
+                  (org-duration-from-minutes my/org-time-workday-minutes)))
+    (my/org-log-time task remaining time)
+    (message "Filled %s with %s -- day now %s"
+             task
+             (org-duration-from-minutes remaining)
+             (org-duration-from-minutes my/org-time-workday-minutes))))
+#+end_src
+
+*** The Monthly Report
+The built-in clocktable groups by file, which here means by day -- it gives the
+per-day and month totals but not the per-task column. =my/org-clocktable-matrix=
+is a =:formatter=, the documented hook for exactly this, and pivots the same data
+into the spreadsheet's shape.
+
+#+begin_src emacs-lisp
+(defun my/org-clocktable-matrix (ipos tables params)
+  "Clocktable formatter laying tasks out as rows and days as columns.
+Cells are minutes, mirroring the spreadsheet this replaces.  IPOS, TABLES
+and PARAMS are as documented for `org-clocktable-write-default'."
+  (let ((days nil) (tasks nil)
+        (cells (make-hash-table :test #'equal))
+        (grand 0))
+    (dolist (tbl tables)
+      (let ((day (my/org-time-file-day (nth 0 tbl))))
+        (when day
+          (dolist (entry (nth 2 tbl))
+            ;; Level 1 is the container heading; level 2 holds the tasks.
+            (when (= (nth 0 entry) 2)
+              (let ((task (nth 1 entry))
+                    (mins (nth 4 entry)))
+                (when (> mins 0)
+                  (cl-pushnew day days)
+                  (cl-pushnew task tasks :test #'equal)
+                  (cl-incf grand mins)
+                  (puthash (cons task day)
+                           (+ mins (gethash (cons task day) cells 0))
+                           cells))))))))
+    (setq days (sort days #'<)
+          tasks (sort tasks #'string<))
+    (goto-char ipos)
+    (if (null tasks)
+        (insert "No clocked time in this period.\n")
+      (insert "| Task |")
+      (dolist (d days) (insert (format " %d |" d)))
+      (insert " Total (min) | Total (h) |\n|---\n")
+      (dolist (task tasks)
+        (let ((row 0))
+          (insert (format "| %s |" task))
+          (dolist (d days)
+            (let ((m (gethash (cons task d) cells)))
+              (cl-incf row (or m 0))
+              (insert (if m (format " %d |" m) " |"))))
+          (insert (format " %d | %.2f |\n" row (/ row 60.0)))))
+      (insert "|---\n| *Total (min)* |")
+      (dolist (d days)
+        (let ((col 0))
+          (dolist (task tasks)
+            (cl-incf col (or (gethash (cons task d) cells) 0)))
+          (insert (format " %d |" col))))
+      (insert (format " *%d* | *%.2f* |\n" grand (/ grand 60.0)))
+      (goto-char ipos)
+      (skip-chars-forward "^|")
+      (org-table-align))
+    grand))
+
+;;;###autoload
+(defun my/org-time-report (month)
+  "Write and show the time report for MONTH, a string like \"2026-08\".
+Interactively use the current month, or prompt with a prefix argument.
+The report file is regenerated from the daily notes every time, so do not
+keep hand-written notes in it."
+  (interactive
+   (list (if current-prefix-arg
+             (read-string "Month (YYYY-MM): " (format-time-string "%Y-%m"))
+           (format-time-string "%Y-%m"))))
+  (let* ((dir (expand-file-name my/org-time-report-directory))
+         (file (expand-file-name (concat month ".org") dir)))
+    (make-directory dir t)
+    (find-file file)
+    (erase-buffer)
+    (insert (format "#+title: Time report %s\n#+category: Time report\n\n" month))
+    (insert (format (concat "#+BEGIN: clocktable :scope my/org-time-daily-files"
+                            " :block %s :maxlevel 2"
+                            " :formatter my/org-clocktable-matrix\n#+END:\n")
+                    month))
+    (org-update-all-dblocks)
+    (save-buffer)
+    (goto-char (point-min))))
+#+end_src
+
