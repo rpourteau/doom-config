@@ -614,6 +614,7 @@ accepted and shows up in the report on its own row.
     "VHEE Meeting"
     "VHEE Design"
     "Varex")
+  "Custom non-exhaustive list of tasks"
   :type '(repeat string)
   :group 'org-clock)
 
