@@ -255,6 +255,7 @@ I am trying to be smart in the shortcuts letters mapping tho.
 ;; SPC o - open
 (map! :leader
       :prefix "o"
+      :desc "Calendar" "c" #'calendar
       :desc "New frame" "f" #'make-frame-command
       :desc "Toggle terminal" "t" #'my/toggle-term)
 #+end_src
