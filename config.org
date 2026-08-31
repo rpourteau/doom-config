@@ -272,7 +272,12 @@ I am trying to be smart in the shortcuts letters mapping tho.
       :desc "List flycheck errors" "l" #'flycheck-list-errors
       :desc "Start python interpreter" "p" #'run-python
       :desc "Comment-line" "c" #'comment-line
-      :desc "Call rgrep" "g" #'rgrep)
+      :desc "Call rgrep" "g" #'rgrep
+      ;; SPC l t - time tracking
+      (:prefix ("t" . "time tracking")
+       :desc "Log time on a task" "l" #'my/org-log-time
+       :desc "Fill the day" "f" #'my/org-time-fill
+       :desc "Monthly report" "r" #'my/org-time-report))
 #+end_src
 
 ** Languages
