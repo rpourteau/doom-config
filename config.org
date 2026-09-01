@@ -16,6 +16,7 @@
 - [[#org-mode][ORG MODE]]
   - [[#defining-a-few-things][Defining A Few Things]]
   - [[#agenda][Agenda]]
+  - [[#calendar-to-daily-notes][Calendar To Daily Notes]]
   - [[#enabling-org-bullets][Enabling Org Bullets]]
   - [[#org-to-do-keywords][Org To-do Keywords]]
   - [[#source-code-block-syntax-highlighting][Source Code Block Syntax Highlighting]]
@@ -517,6 +518,29 @@ so the agenda shows the timestamp as well of the note name.
          :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
                             "#+title: ${title}\n#+category: ${title}\n")
          :unnarrowed t)))
+#+end_src
+
+** Calendar To Daily Notes
+=RET= on a date in the calendar (=SPC o c=) opens that day's daily note, creating
+it if needed. It is ~org-roam-dailies-goto-date~ with the calendar cursor standing
+in for its date prompt.
+
+#+begin_src emacs-lisp
+(defun my/calendar-goto-daily ()
+  "Visit the org-roam daily note for the date under the cursor.
+The note is created when it does not exist yet.  This is
+`org-roam-dailies-goto-date' with the calendar cursor standing in for its
+date prompt."
+  (interactive)
+  (require 'org-roam-dailies)
+  (let* ((date (calendar-cursor-to-date t))
+         (time (org-time-string-to-time
+                (format "%04d-%02d-%02d" (nth 2 date) (nth 0 date) (nth 1 date)))))
+    (org-roam-dailies--capture time t "d")))
+
+(map! :after calendar
+      :map calendar-mode-map
+      :n "RET" #'my/calendar-goto-daily)
 #+end_src
 
 ** Enabling Org Bullets
