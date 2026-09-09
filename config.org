@@ -627,21 +627,21 @@ Three commands:
   prefix argument to pick another.
 
 *** Task List And Locations
-The task list is only completion fodder: any name typed at the prompt is
-accepted and shows up in the report on its own row.
+Task new names are automatically added in a cache file under org directory.
+=my/org-time-seed-tasks= is only used to build that cache the first time.
 
 #+begin_src emacs-lisp
 (require 'cl-lib)
 
-(defcustom my/org-time-tasks
+(defvar my/org-time-seed-tasks
   '("Overhead"
-    "Team Meetings"
-    "VHEE Meeting"
-    "VHEE Design"
-    "Varex")
-  "Custom non-exhaustive list of tasks"
-  :type '(repeat string)
-  :group 'org-clock)
+    "Team Meetings")
+  "Task names used to create the cache the first time it is needed.")
+
+(defvar my/org-time-tasks-file
+  (expand-file-name "time-tasks.txt" org-directory)
+  "File caching the known task names, one per line.
+`my/org-log-time' appends any name it has not seen before.")
 
 (defvar my/org-time-heading "Time"
   "Top-level heading in a daily note under which task time is clocked.")
@@ -681,6 +681,76 @@ daily note; the =:block= parameter is to narrow things to one month.
     (unless (file-exists-p file)
       (save-window-excursion (org-roam-dailies--capture time t "d")))
     file))
+#+end_src
+
+*** The Task Cache
+=my/org-time-tasks-file= is a plain list of names, one per line, sorted and
+deduplicated, so it can be edited by hand to rename or prune entries. It is built
+on first use from the task headings already in the daily notes plus
+=my/org-time-seed-tasks=, and ~my/org-time-refresh-tasks~ rebuilds it the same
+way -- merging rather than replacing, so running it never loses a name.
+
+#+begin_src emacs-lisp
+(defun my/org-time-tasks--read ()
+  "Return the task names currently in `my/org-time-tasks-file'.
+Returns nil when the file does not exist; does not create it."
+  (when (file-exists-p my/org-time-tasks-file)
+    (with-temp-buffer
+      (insert-file-contents my/org-time-tasks-file)
+      (split-string (buffer-string) "\n" t "[ \t]+"))))
+
+(defun my/org-time-tasks--write (tasks)
+  "Write TASKS to `my/org-time-tasks-file', sorted and deduplicated.
+Returns the list as written."
+  (let ((sorted (sort (delete-dups (copy-sequence tasks)) #'string<)))
+    (with-temp-file my/org-time-tasks-file
+      (dolist (task sorted) (insert task "\n")))
+    sorted))
+
+(defun my/org-time-tasks--in-notes ()
+  "Task names appearing under `my/org-time-heading' in the daily notes."
+  (let (tasks)
+    (dolist (file (my/org-time-daily-files))
+      (with-temp-buffer
+        (insert-file-contents file)
+        (goto-char (point-min))
+        (when (re-search-forward
+               (format "^\\* %s[ \t]*$" (regexp-quote my/org-time-heading)) nil t)
+          (let ((end (save-excursion
+                       (if (re-search-forward "^\\* " nil t)
+                           (match-beginning 0)
+                         (point-max)))))
+            (while (re-search-forward "^\\*\\* \\(.+?\\)[ \t]*$" end t)
+              (push (match-string-no-properties 1) tasks))))))
+    (nreverse tasks)))
+
+(defun my/org-time-tasks ()
+  "Return the known task names, building the cache first if it is absent.
+This is what `my/org-log-time' and `my/org-time-fill' offer for completion."
+  (unless (file-exists-p my/org-time-tasks-file)
+    (my/org-time-refresh-tasks))
+  (my/org-time-tasks--read))
+
+(defun my/org-time-remember-task (task)
+  "Add TASK to the cache unless it is already known."
+  (let ((tasks (my/org-time-tasks)))
+    (unless (member task tasks)
+      (my/org-time-tasks--write (cons task tasks)))))
+
+;;;###autoload
+(defun my/org-time-refresh-tasks ()
+  "Rebuild the task cache from the daily notes.
+Merges the names already cached, those found in the notes, and
+`my/org-time-seed-tasks', so nothing is lost by running it.  Use it after
+editing notes by hand, or to recover a deleted cache file."
+  (interactive)
+  (let ((tasks (my/org-time-tasks--write
+                (append (my/org-time-tasks--read)
+                        (my/org-time-tasks--in-notes)
+                        my/org-time-seed-tasks))))
+    (when (called-interactively-p 'interactive)
+      (message "%d tasks cached in %s" (length tasks) my/org-time-tasks-file))
+    tasks))
 #+end_src
 
 *** Entering Time
@@ -744,7 +814,7 @@ org clocking -- clocktables, the agenda clock report, `my/org-time-report'
 -- sees it.  Timestamps are stacked from `my/org-time-day-start'; only the
 durations are meaningful."
   (interactive
-   (list (completing-read "Task: " my/org-time-tasks nil nil)
+   (list (completing-read "Task: " (my/org-time-tasks) nil nil)
          (read-number "Minutes: ")
          (when current-prefix-arg (org-read-date nil t))))
   (when (<= minutes 0) (user-error "Minutes must be positive"))
@@ -767,6 +837,7 @@ durations are meaningful."
                                                   (seconds-to-time end))
                               (org-duration-from-minutes minutes)))))
       (save-buffer))
+    (my/org-time-remember-task task)
     (message "Logged %d min on %s (%s)" minutes task
              (file-name-nondirectory file))))
 #+end_src
@@ -801,7 +872,7 @@ Whatever is already clocked in the day is subtracted from
 the small tasks can be entered first and the day's main task simply fills
 what is left.  DATE defaults to today; a prefix argument prompts for it."
   (interactive
-   (list (completing-read "Fill day with task: " my/org-time-tasks nil nil)
+   (list (completing-read "Fill day with task: " (my/org-time-tasks) nil nil)
          (when current-prefix-arg (org-read-date nil t))))
   (let* ((time (or date (current-time)))
          (logged (my/org-time-day-minutes time))
