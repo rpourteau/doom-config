@@ -464,6 +464,24 @@ the Claude buffer straight into Emacs state so evil doesn't intercept keys.
                 (evil-emacs-state)))))
 #+end_src
 
+*** Magit
+Magit is an amazing tool for git. Default access =SPC g g= but it is missing a command to update every submodules =git submodule update --init --recursive=.
+The function below runs it from the repository top level, asynchronously, so the output lands in the
+magit process buffer (=$= from the status buffer). It is added to the submodule menu (=o= in the status
+buffer) under =U=, next to the built-in =u=, which only acts on the selected submodules.
+
+#+begin_src emacs-lisp
+(defun my/magit-submodule-update-all ()
+  "Run `git submodule update --init --recursive' in the current repository."
+  (interactive)
+  (magit-with-toplevel
+    (magit-run-git-async "submodule" "update" "--init" "--recursive")))
+
+(after! magit
+  (transient-append-suffix 'magit-submodule "u"
+    '("U" "Update all (init, recursive)" my/magit-submodule-update-all)))
+#+end_src
+
 * ORG MODE
 Org-mode is emacs upgrade to Markdown. This entire configuration is written in org-mode that allows to generate
 a clean doc and tangle each part of the config to output .el files.
