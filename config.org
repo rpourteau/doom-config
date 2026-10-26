@@ -561,9 +561,17 @@ This creates the various TODO tags that we can use in Org.
              "TODO(t)"           ; A task that is ready to be tackled
              "IN-PROGRESS(p)"    ; Working on it
              "WAIT(w)"           ; Something is holding up this task
+             "OPEN(o)"           ; Open point that will need to be further discussed
              "|"                 ; The pipe necessary to separate "active" states and "inactive" states
              "DONE(d)"           ; Task has been completed
              "CANCELLED(c)" )))  ; Task has been cancelled
+#+end_src
+
+Override color for OPEN using existing DOOM todo faces.
+
+#+begin_src emacs-lisp
+(after! org
+  (add-to-list 'org-todo-keyword-faces '("OPEN" . +org-todo-onhold)))
 #+end_src
 
 ** Source Code Block Syntax Highlighting
