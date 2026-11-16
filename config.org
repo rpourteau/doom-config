@@ -282,6 +282,19 @@ I am trying to be smart in the shortcuts letters mapping tho.
        :desc "Monthly report" "r" #'my/org-time-report))
 #+end_src
 
+=SPC g= is the git menu. Hunk navigation moves from Doom's =]= / =[= to =j= / =k=, like evil's down/up.
+These come from the =vc-gutter= module, not Magit, so they work in any buffer under version control.
+The old keys are unbound so they don't show twice in which-key.
+#+begin_src emacs-lisp
+;; SPC g - git
+(map! :leader
+      :prefix "g"
+      "]" nil
+      "[" nil
+      :desc "Jump to next hunk" "j" #'+vc-gutter/next-hunk
+      :desc "Jump to previous hunk" "k" #'+vc-gutter/previous-hunk)
+#+end_src
+
 ** Languages
 Most languages package work perfectly with their defaults settings but some languages major mode might need
 custom settings to either work properly or work to my liking.
